@@ -1,0 +1,925 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="uz">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>AntiFraud | Professional Monitoring</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">-->
+<!--    <style>-->
+<!--        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }-->
+<!--        .table-container { height: calc(100vh - 180px); overflow: auto; }-->
+<!--        th { position: sticky; top: 0; background: #f1f5f9; z-index: 10; white-space: nowrap; }-->
+<!--        td { white-space: nowrap; font-size: 13px; }-->
+<!--        .active-row { background-color: #eff6ff !important; box-shadow: inset 4px 0 0 #2563eb; }-->
+<!--        .font-mono-xs { font-family: ui-monospace, monospace; font-size: 11px; }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="flex min-h-screen">-->
+
+<!--<aside class="w-64 bg-slate-900 text-slate-300 flex flex-col fixed h-full z-50">-->
+<!--    <div class="p-6 border-b border-slate-800">-->
+<!--        <span class="font-bold text-white text-lg tracking-tight">AntiFraud Admin</span>-->
+<!--    </div>-->
+<!--    <nav class="flex-1 p-4 space-y-2">-->
+<!--        <a href="/form/admin/dashboard" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-slate-800 transition-all">Dashboard</a>-->
+<!--        <a href="/form/admin/users" class="flex items-center gap-3 px-4 py-2 rounded-lg bg-blue-600 text-white font-bold shadow-lg">Foydalanuvchilar</a>-->
+<!--    </nav>-->
+<!--</aside>-->
+
+<!--<main class="ml-64 flex-1 p-6">-->
+<!--    <header class="flex justify-between items-center mb-6">-->
+<!--        <div>-->
+<!--            <h1 class="text-2xl font-extrabold text-slate-900">Tizim Foydalanuvchilari</h1>-->
+<!--            <p id="admin-info" class="text-slate-500 text-xs mt-1 font-medium italic"></p>-->
+<!--        </div>-->
+
+<!--        <div class="flex bg-slate-200/50 p-1 rounded-xl border border-slate-200">-->
+<!--            <button onclick="changeStatus(false)" id="tab-clean" class="px-5 py-2 rounded-lg text-xs font-bold transition-all">Aktiv</button>-->
+<!--            <button onclick="changeStatus(true)" id="tab-fraud" class="px-5 py-2 rounded-lg text-xs font-bold transition-all">Fraud</button>-->
+<!--        </div>-->
+<!--    </header>-->
+
+<!--    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">-->
+<!--        <div class="table-container">-->
+<!--            <table class="w-full text-left border-collapse">-->
+<!--                <thead class="text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200">-->
+<!--                <tr>-->
+<!--                    <th class="px-4 py-3">ID</th>-->
+<!--                    <th class="px-4 py-3">Telefon</th>-->
+<!--                    <th class="px-4 py-3">IP Manzil</th>-->
+<!--                    <th class="px-4 py-3">Device ID</th>-->
+<!--                    <th class="px-4 py-3">Joylashuv</th>-->
+<!--                    <th class="px-4 py-3">Lat/Long</th>-->
+<!--                    <th class="px-4 py-3">IP Lat/Long</th>-->
+<!--                    <th class="px-4 py-3">Status</th>-->
+<!--                    <th class="px-4 py-3">Log Message</th>-->
+<!--                    <th class="px-4 py-3">Sana</th>-->
+<!--                </tr>-->
+<!--                </thead>-->
+<!--                <tbody id="userGrid" class="divide-y divide-slate-100">-->
+<!--                </tbody>-->
+<!--            </table>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</main>-->
+
+<!--<div id="sidePanel" class="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl z-[60] transform translate-x-full transition-transform duration-300 border-l border-slate-200">-->
+<!--    <div class="p-6">-->
+<!--        <div class="flex justify-between items-center mb-8">-->
+<!--            <h3 class="font-bold text-lg text-slate-900">Havola Detallari</h3>-->
+<!--            <button onclick="closePanel()" class="text-slate-400 hover:text-slate-600">✕</button>-->
+<!--        </div>-->
+<!--        <div id="linkedData" class="space-y-5">-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--    const API_USER = '/api/user';-->
+<!--    let currentIsFraud = false;-->
+
+<!--    const getAuth = () => {-->
+<!--        const encoded = localStorage.getItem('admin_token');-->
+<!--        if (!encoded) return null;-->
+<!--        const token = atob(encoded);-->
+<!--        const payload = JSON.parse(atob(token.split('.')[1]));-->
+<!--        return { token, role: payload.role, adminId: payload.id };-->
+<!--    };-->
+
+<!--    const session = getAuth();-->
+
+<!--    async function loadData() {-->
+<!--        if (!session) return window.location.href = '/login';-->
+
+<!--        document.getElementById('admin-info').innerText = `Roli: ${session.role} | Admin ID: ${session.adminId}`;-->
+
+<!--        // Tab style-->
+<!--        const isF = currentIsFraud;-->
+<!--        document.getElementById('tab-clean').className = !isF ? 'px-5 py-2 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-sm' : 'px-5 py-2 rounded-lg text-xs font-bold text-slate-500';-->
+<!--        document.getElementById('tab-fraud').className = isF ? 'px-5 py-2 rounded-lg text-xs font-bold bg-red-600 text-white shadow-sm' : 'px-5 py-2 rounded-lg text-xs font-bold text-slate-500';-->
+
+<!--        const url = (session.role === 'super_admin')-->
+<!--            ? `${API_USER}/all?isFraud=${isF}`-->
+<!--            : `${API_BASE}/list/${session.adminId}?isFraud=${isF}`;-->
+
+<!--        try {-->
+<!--            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${session.token}` } });-->
+<!--            const users = await res.json();-->
+<!--            renderTable(users);-->
+<!--        } catch (err) { console.error(err); }-->
+<!--    }-->
+
+<!--    function renderTable(users) {-->
+<!--        const tbody = document.getElementById('userGrid');-->
+<!--        tbody.innerHTML = users.map(u => `-->
+<!--            <tr class="hover:bg-slate-50 transition-all cursor-pointer group" onclick="fetchLinkedProjection(${u.id}, this)">-->
+<!--                <td class="px-4 py-4 font-mono-xs text-blue-600">#${u.id}</td>-->
+<!--                <td class="px-4 py-4 font-bold text-slate-800">${u.userPhone}</td>-->
+<!--                <td class="px-4 py-4 font-mono-xs text-slate-600">${u.userIp}</td>-->
+<!--                <td class="px-4 py-4 font-mono-xs opacity-50 truncate max-w-[120px]">${u.userDeviceId}</td>-->
+<!--                <td class="px-4 py-4 text-slate-600">${u.userLocation || 'N/A'}</td>-->
+<!--                <td class="px-4 py-4 text-xs font-medium">${u.latitude}, ${u.longitude}</td>-->
+<!--                <td class="px-4 py-4 text-xs font-medium">${u.ipLatitude}, ${u.ipLongitude}</td>-->
+<!--                <td class="px-4 py-4">-->
+<!--                    <span class="px-2 py-1 rounded text-[10px] font-bold ${u.isFraud ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">-->
+<!--                        ${u.isFraud ? 'FRAUD' : 'OK'}-->
+<!--                    </span>-->
+<!--                </td>-->
+<!--                <td class="px-4 py-4 text-xs italic text-slate-400 max-w-[150px] truncate">${u.logMessage || '-'}</td>-->
+<!--                <td class="px-4 py-4 text-[11px] text-slate-500 font-medium">${new Date(u.createdAt).toLocaleString()}</td>-->
+<!--            </tr>-->
+<!--        `).join('');-->
+<!--    }-->
+
+<!--    async function fetchLinkedProjection(userId, el) {-->
+<!--        document.querySelectorAll('tr').forEach(r => r.classList.remove('active-row'));-->
+<!--        el.classList.add('active-row');-->
+
+<!--        const panel = document.getElementById('sidePanel');-->
+<!--        const content = document.getElementById('linkedData');-->
+<!--        panel.classList.remove('translate-x-full');-->
+<!--        content.innerHTML = '<div class="p-10 text-center animate-pulse text-slate-400">Projection yuklanmoqda...</div>';-->
+
+<!--        try {-->
+<!--            const res = await fetch(`${API_USER}/linked-user/${userId}`, {-->
+<!--                headers: { 'Authorization': `Bearer ${session.token}` }-->
+<!--            });-->
+<!--            const l = await res.json();-->
+
+<!--            // Interface maydonlariga moslab chiqarish (get prefiksisiz)-->
+<!--            content.innerHTML = `-->
+<!--                <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-xl">-->
+<!--                    <label class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Link nomi (ID)</label>-->
+<!--                    <p class="text-2xl font-black text-blue-400">#${l.linkName}</p>-->
+<!--                    <div class="mt-4 pt-4 border-t border-slate-800 grid grid-cols-2 gap-4">-->
+<!--                        <div><label class="text-[9px] text-slate-500">USER ID</label><p class="text-sm font-bold">${l.userId}</p></div>-->
+<!--                        <div><label class="text-[9px] text-slate-500">CODE</label><p class="text-sm font-bold font-mono text-green-400">${l.code}</p></div>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                <div class="space-y-4">-->
+<!--                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">-->
+<!--                        <label class="text-[10px] text-slate-400 font-bold">LINK DEVICE ID</label>-->
+<!--                        <p class="font-mono-xs text-slate-700 mt-1 break-all">${l.userDeviceId}</p>-->
+<!--                    </div>-->
+
+<!--                    <div class="grid grid-cols-2 gap-4">-->
+<!--                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">-->
+<!--                            <label class="text-[10px] text-slate-400 font-bold">FRAUD STATUS</label>-->
+<!--                            <p class="text-sm font-black ${l.isFraud ? 'text-red-600' : 'text-green-600'}">${l.isFraud ? 'TRUE' : 'FALSE'}</p>-->
+<!--                        </div>-->
+<!--                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">-->
+<!--                            <label class="text-[10px] text-slate-400 font-bold">DATE</label>-->
+<!--                            <p class="text-[11px] font-bold mt-1">${new Date(l.submittedAt).toLocaleDateString()}</p>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="p-4 bg-blue-50/50 rounded-xl border border-blue-100">-->
+<!--                        <label class="text-[10px] text-blue-400 font-bold">SUBMITTED TIME</label>-->
+<!--                        <p class="text-sm font-bold text-blue-900">${new Date(l.submittedAt).toLocaleTimeString()}</p>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            `;-->
+<!--        } catch (err) { content.innerHTML = '<p class="text-red-500">Projection xatoligi.</p>'; }-->
+<!--    }-->
+
+<!--    function changeStatus(val) { currentIsFraud = val; loadData(); closePanel(); }-->
+<!--    function closePanel() { document.getElementById('sidePanel').classList.add('translate-x-full'); }-->
+
+<!--    window.onload = loadData;-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AntiFraud · Foydalanuvchilar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-base:      #0a0d14;
+            --bg-surface:   #111622;
+            --bg-elevated:  #171e2e;
+            --bg-hover:     #1c2538;
+            --border:       #1f2d45;
+            --border-light: #263347;
+            --text-primary: #e8edf7;
+            --text-secondary:#7a8aaa;
+            --text-muted:   #4a5670;
+            --accent:       #3b82f6;
+            --accent-dim:   rgba(59,130,246,0.12);
+            --accent-glow:  rgba(59,130,246,0.25);
+            --cyan:         #06b6d4;
+            --cyan-dim:     rgba(6,182,212,0.10);
+            --green:        #10b981;
+            --green-dim:    rgba(16,185,129,0.10);
+            --red:          #f43f5e;
+            --red-dim:      rgba(244,63,94,0.10);
+            --amber:        #f59e0b;
+            --amber-dim:    rgba(245,158,11,0.10);
+            --purple:       #a855f7;
+            --purple-dim:   rgba(168,85,247,0.10);
+            --sidebar-w:    260px;
+            --panel-w:      400px;
+            --radius-sm:    6px;
+            --radius-md:    10px;
+            --radius-lg:    14px;
+            --radius-xl:    20px;
+        }
+
+        html, body { height: 100%; }
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 99px; }
+
+        /* ─── SIDEBAR ─── */
+        aside {
+            width: var(--sidebar-w);
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 50;
+            overflow: hidden;
+        }
+        aside::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 0;
+        }
+        .sidebar-content { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
+
+        .sidebar-brand {
+            padding: 14px 20px;
+            display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .brand-icon {
+            width: 32px; height: 32px;
+            background: var(--accent-dim);
+            border: 1px solid rgba(59,130,246,0.25);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent);
+        }
+        .brand-name {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px; font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        .sidebar-profile {
+            padding: 16px 16px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .profile-avatar {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--cyan));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600; font-size: 15px; color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 1px rgba(59,130,246,0.3), 0 4px 16px rgba(59,130,246,0.2);
+            letter-spacing: -0.5px;
+        }
+        .profile-info { min-width: 0; }
+        .profile-name { font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+        .profile-phone { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted); margin-top: 3px; letter-spacing: 0.5px; }
+
+        nav { flex: 1; padding: 14px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .nav-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); padding: 6px 12px 4px; margin-top: 6px; }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 11px;
+            padding: 9px 12px; border-radius: var(--radius-md);
+            font-size: 13px; font-weight: 500;
+            color: var(--text-secondary); text-decoration: none;
+            transition: all 0.15s ease;
+            cursor: pointer; border: none; background: none;
+            width: 100%; text-align: left; position: relative;
+        }
+        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 3px; height: 60%; background: var(--accent); border-radius: 0 3px 3px 0;
+        }
+        .nav-item.danger { color: var(--red); }
+        .nav-item.danger:hover { background: var(--red-dim); }
+        .nav-divider { height: 1px; background: var(--border); margin: 10px 12px; }
+
+        /* ─── MAIN ─── */
+        main {
+            margin-left: var(--sidebar-w);
+            flex: 1; padding: 32px 36px;
+            min-height: 100vh;
+            transition: margin-right 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        main.panel-open { margin-right: var(--panel-w); }
+
+        main::before {
+            content: '';
+            position: fixed;
+            top: 0; left: var(--sidebar-w); right: 0; bottom: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.18; pointer-events: none; z-index: 0;
+        }
+        .page-content { position: relative; z-index: 1; }
+
+        /* ─── HEADER ─── */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+        .page-title { font-size: 26px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; line-height: 1; }
+        .page-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); margin-top: 6px; letter-spacing: 0.5px; }
+
+        /* ─── TAB TOGGLE ─── */
+        .tab-group {
+            display: flex;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 3px; gap: 2px;
+        }
+        .tab-btn {
+            padding: 8px 20px;
+            border-radius: var(--radius-sm);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px; font-weight: 600;
+            letter-spacing: 1px; text-transform: uppercase;
+            cursor: pointer; border: none;
+            color: var(--text-muted);
+            background: transparent;
+            transition: all 0.15s ease;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .tab-btn.active-tab {
+            background: var(--bg-elevated);
+            color: var(--accent);
+            border: 1px solid var(--border-light);
+        }
+        .tab-btn.fraud-tab.active-tab { color: var(--red); }
+        .tab-btn .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+        /* ─── STATS ROW ─── */
+        .stats-row { display: flex; gap: 14px; margin-bottom: 22px; }
+        .mini-stat {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            display: flex; align-items: center; gap: 12px;
+            flex: 1;
+        }
+        .mini-stat-icon {
+            width: 36px; height: 36px;
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .mini-stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+        .mini-stat-value { font-size: 20px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; line-height: 1.1; margin-top: 2px; }
+
+        /* ─── TABLE WRAPPER ─── */
+        .table-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        .table-header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+        }
+        .table-title {
+            font-size: 13px; font-weight: 700; color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .table-count {
+            font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+            background: var(--accent-dim); color: var(--accent);
+            border: 1px solid rgba(59,130,246,0.2);
+            padding: 2px 8px; border-radius: 99px;
+        }
+        .table-scroll { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        thead tr { background: var(--bg-elevated); border-bottom: 1px solid var(--border); }
+        th {
+            padding: 10px 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--text-muted); text-align: left;
+            white-space: nowrap; position: sticky; top: 0;
+        }
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; cursor: pointer; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--bg-hover); }
+        tbody tr.row-active { background: var(--accent-dim); box-shadow: inset 3px 0 0 var(--accent); }
+
+        td { padding: 12px 16px; font-size: 12px; color: var(--text-secondary); vertical-align: middle; white-space: nowrap; }
+        .td-id { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); }
+        .td-phone { font-weight: 700; color: var(--text-primary); font-size: 13px; }
+        .td-mono { font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+        .td-truncate { max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 9px; border-radius: 99px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px; font-weight: 600; letter-spacing: 1px;
+        }
+        .badge-ok { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+        .badge-fraud { background: var(--red-dim); color: var(--red); border: 1px solid rgba(244,63,94,0.2); }
+
+        .log-msg { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
+
+        .empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+
+        /* ─── SIDE PANEL ─── */
+        .side-panel {
+            position: fixed;
+            right: 0; top: 0;
+            height: 100vh;
+            width: var(--panel-w);
+            background: var(--bg-surface);
+            border-left: 1px solid var(--border);
+            z-index: 60;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .side-panel.open { transform: translateX(0); }
+
+        .panel-header {
+            padding: 20px 22px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0;
+        }
+        .panel-title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+        .panel-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-muted); margin-top: 3px; letter-spacing: 1px; }
+
+        .panel-close {
+            width: 28px; height: 28px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--text-muted);
+            transition: all 0.15s;
+        }
+        .panel-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+        .panel-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+        .panel-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+        }
+        .panel-card-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--text-muted); margin-bottom: 14px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .panel-card-header::before {
+            content: ''; width: 6px; height: 6px;
+            border-radius: 50%; background: var(--accent);
+        }
+
+        .panel-field { margin-bottom: 12px; }
+        .panel-field:last-child { margin-bottom: 0; }
+        .field-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+        .field-value { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .field-value.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; word-break: break-all; }
+
+        .panel-link-id {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 32px; font-weight: 600;
+            color: var(--accent); letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .panel-grid .panel-card { padding: 12px; }
+
+        .panel-loading {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px; gap: 12px;
+            color: var(--text-muted);
+            font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+        }
+        .spin {
+            width: 28px; height: 28px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── TOAST ─── */
+        #toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 999;
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 18px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 13px; font-weight: 500; color: var(--text-primary);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: translateY(80px); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none; max-width: 300px;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        #toast.success { border-left: 3px solid var(--green); }
+        #toast.error   { border-left: 3px solid var(--red); }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<aside>
+    <div class="sidebar-content">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+            <span class="brand-name">AntiFraud</span>
+        </div>
+
+        <div class="sidebar-profile">
+            <div class="profile-avatar" id="sidebar-avatar">--</div>
+            <div class="profile-info">
+                <div class="profile-name" id="sidebar-name">Yuklanmoqda...</div>
+                <div class="profile-phone" id="sidebar-phone">—</div>
+            </div>
+        </div>
+
+        <nav>
+            <span class="nav-label">Asosiy</span>
+            <a href="/form/admin/dashboard" class="nav-item">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/>
+                    <rect x="11" y="11" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="/form/admin/users" class="nav-item active">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Foydalanuvchilar
+            </a>
+            <a href="/form/admin/links" class="nav-item">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                Linklar
+            </a>
+            <div class="nav-divider"></div>
+            <span class="nav-label">Tizim</span>
+            <button onclick="logout()" class="nav-item danger">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Chiqish
+            </button>
+        </nav>
+    </div>
+</aside>
+
+<!-- ─── MAIN ─── -->
+<main id="main-content">
+    <div class="page-content">
+
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Foydalanuvchilar</h1>
+                <p class="page-subtitle" id="page-subtitle">// tizimga kirgan barcha foydalanuvchilar</p>
+            </div>
+            <div class="tab-group">
+                <button class="tab-btn active-tab" id="tab-aktiv" onclick="changeStatus(false)">
+                    <span class="dot"></span> Aktiv
+                </button>
+                <button class="tab-btn fraud-tab" id="tab-fraud" onclick="changeStatus(true)">
+                    <span class="dot"></span> Fraud
+                </button>
+            </div>
+        </div>
+
+        <!-- Mini stats -->
+        <div class="stats-row">
+            <div class="mini-stat">
+                <div class="mini-stat-icon" style="background:var(--accent-dim);color:var(--accent);">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="mini-stat-label">Ko'rsatilmoqda</div>
+                    <div class="mini-stat-value" id="stat-showing">—</div>
+                </div>
+            </div>
+            <div class="mini-stat">
+                <div class="mini-stat-icon" style="background:var(--red-dim);color:var(--red);">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="mini-stat-label">Fraud Holat</div>
+                    <div class="mini-stat-value" id="stat-fraud-count" style="color:var(--red)">—</div>
+                </div>
+            </div>
+            <div class="mini-stat">
+                <div class="mini-stat-icon" style="background:var(--green-dim);color:var(--green);">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="mini-stat-label">Xavfsiz</div>
+                    <div class="mini-stat-value" id="stat-safe-count" style="color:var(--green)">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+            <div class="table-header-bar">
+                <div class="table-title">
+                    <span id="table-mode-label">Aktiv foydalanuvchilar</span>
+                    <span class="table-count" id="tbl-count">0 ta</span>
+                </div>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Telefon</th>
+                        <th>IP Manzil</th>
+                        <th>Device ID</th>
+                        <th>Joylashuv</th>
+                        <th>Lat / Long</th>
+                        <th>IP Lat / Long</th>
+                        <th>Status</th>
+                        <th>Log</th>
+                        <th>Sana</th>
+                    </tr>
+                    </thead>
+                    <tbody id="userGrid">
+                    <tr><td colspan="10"><div class="empty-state">// yuklanmoqda...</div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ─── SIDE PANEL ─── -->
+<div class="side-panel" id="sidePanel">
+    <div class="panel-header">
+        <div>
+            <div class="panel-title">Havola Detallari</div>
+            <div class="panel-subtitle">// LINKED PROJECTION DATA</div>
+        </div>
+        <button class="panel-close" onclick="closePanel()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+        </button>
+    </div>
+    <div class="panel-body" id="linkedData">
+        <div class="panel-loading">
+            <div class="spin"></div>
+            <span>Kutilmoqda...</span>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    const API_USER = '/api/user';
+    let currentIsFraud = false;
+
+    // ── Auth ──
+    const getAuth = () => {
+        const enc = localStorage.getItem('admin_token');
+        if (!enc) return null;
+        try {
+            const token = atob(enc);
+            const p = JSON.parse(atob(token.split('.')[1]));
+            return { token, role: p.role, fullname: p.fullname, phone: p.phone, adminId: p.adminId };
+        } catch { return null; }
+    };
+
+    const auth = getAuth();
+    if (!auth) window.location.href = '/form/admin/login';
+
+    const headers = () => ({ 'Authorization': `Bearer ${auth.token}` });
+
+    // ── Toast ──
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="color:${type==='success'?'var(--green)':'var(--red)'}">
+            ${type === 'success' ? '<polyline points="20 6 9 17 4 12"/>' : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'}
+        </svg><span>${msg}</span>`;
+        t.className = `show ${type}`;
+        setTimeout(() => { t.className = ''; }, 3500);
+    }
+
+    // ── UI Init ──
+    function initUI() {
+        const initials = (auth.fullname || '--').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        document.getElementById('sidebar-avatar').textContent = initials;
+        document.getElementById('sidebar-name').textContent = auth.fullname || 'Admin';
+        document.getElementById('sidebar-phone').textContent = auth.phone || '';
+    }
+
+    // ── Load Data ──
+    async function loadData() {
+        const isSuperAdmin = auth.role === 'super_admin';
+        const url = isSuperAdmin
+            ? `${API_USER}/all?isFraud=${currentIsFraud}`
+            : `/api/user/list/${auth.adminId}?isFraud=${currentIsFraud}`;
+
+        try {
+            const res = await fetch(url, { headers: headers() });
+            if (res.status === 401 || res.status === 403) return logout();
+            const users = await res.json();
+            renderTable(users);
+
+            const fraudCount = users.filter(u => u.isFraud).length;
+            const safeCount = users.length - fraudCount;
+            document.getElementById('stat-showing').textContent = users.length;
+            document.getElementById('stat-fraud-count').textContent = fraudCount;
+            document.getElementById('stat-safe-count').textContent = safeCount;
+            document.getElementById('tbl-count').textContent = `${users.length} ta`;
+        } catch (e) {
+            showToast('Ma\'lumot yuklanmadi', 'error');
+            document.getElementById('userGrid').innerHTML = `<tr><td colspan="10"><div class="empty-state">// yuklab bo'lmadi</div></td></tr>`;
+        }
+    }
+
+    function renderTable(users) {
+        const tbody = document.getElementById('userGrid');
+        if (!users.length) {
+            tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">// foydalanuvchilar topilmadi</div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = users.map(u => `
+            <tr onclick="fetchLinked(${u.id}, this)">
+                <td class="td-id">#${u.id}</td>
+                <td class="td-phone">${u.userPhone}</td>
+                <td class="td-mono">${u.userIp}</td>
+                <td class="td-mono td-truncate" title="${u.userDeviceId}">${u.userDeviceId || '—'}</td>
+                <td style="color:var(--text-secondary);font-size:12px;">${u.userLocation || 'N/A'}</td>
+                <td class="td-mono" style="color:var(--cyan);font-size:10px;">${u.latitude}, ${u.longitude}</td>
+                <td class="td-mono" style="font-size:10px;">${u.ipLatitude}, ${u.ipLongitude}</td>
+                <td>
+                    <span class="badge ${u.isFraud ? 'badge-fraud' : 'badge-ok'}">
+                        ${u.isFraud ? '⚠ FRAUD' : '✓ OK'}
+                    </span>
+                </td>
+                <td class="log-msg" title="${u.logMessage || ''}">${u.logMessage || '—'}</td>
+                <td class="td-mono" style="font-size:10px;color:var(--text-muted);">${new Date(u.createdAt).toLocaleString('uz-UZ')}</td>
+            </tr>
+        `).join('');
+    }
+
+    // ── Side Panel ──
+    async function fetchLinked(userId, el) {
+        document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('row-active'));
+        el.classList.add('row-active');
+
+        const panel = document.getElementById('sidePanel');
+        const content = document.getElementById('linkedData');
+        panel.classList.add('open');
+        document.getElementById('main-content').classList.add('panel-open');
+
+        content.innerHTML = `<div class="panel-loading"><div class="spin"></div><span>yuklanmoqda...</span></div>`;
+
+        try {
+            const res = await fetch(`${API_USER}/linked-user/${userId}`, { headers: headers() });
+            if (!res.ok) throw new Error('Not found');
+            const l = await res.json();
+
+            content.innerHTML = `
+                <div class="panel-card" style="border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.06);">
+                    <div class="panel-card-header">Link Identifikatori</div>
+                    <div class="panel-link-id">#${l.linkName}</div>
+                </div>
+
+                <div class="panel-grid">
+                    <div class="panel-card">
+                        <div class="field-label">User ID</div>
+                        <div class="field-value mono" style="color:var(--cyan)">${l.userId}</div>
+                    </div>
+                    <div class="panel-card">
+                        <div class="field-label">Code</div>
+                        <div class="field-value mono" style="color:var(--green)">${l.code}</div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-card-header">Device ID</div>
+                    <div class="field-value mono" style="font-size:10px;color:var(--text-secondary)">${l.userDeviceId}</div>
+                </div>
+
+                <div class="panel-grid">
+                    <div class="panel-card">
+                        <div class="field-label">Fraud Holati</div>
+                        <div class="field-value" style="color:${l.isFraud ? 'var(--red)' : 'var(--green)'};font-size:14px;margin-top:4px;">
+                            ${l.isFraud ? '⚠ TRUE' : '✓ FALSE'}
+                        </div>
+                    </div>
+                    <div class="panel-card">
+                        <div class="field-label">Sana</div>
+                        <div class="field-value mono" style="font-size:10px;margin-top:4px;">
+                            ${new Date(l.submittedAt).toLocaleDateString('uz-UZ')}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card" style="border-color:rgba(6,182,212,0.2);background:rgba(6,182,212,0.04);">
+                    <div class="panel-card-header" style="--accent:var(--cyan)">Yuborilgan Vaqt</div>
+                    <div class="field-value" style="font-size:20px;font-weight:800;color:var(--cyan);letter-spacing:-0.5px;">
+                        ${new Date(l.submittedAt).toLocaleTimeString('uz-UZ')}
+                    </div>
+                    <div class="field-value mono" style="font-size:10px;color:var(--text-muted);margin-top:4px;">
+                        ${new Date(l.submittedAt).toLocaleDateString('uz-UZ')}
+                    </div>
+                </div>
+            `;
+        } catch {
+            content.innerHTML = `<div class="panel-card" style="border-color:var(--red-dim);"><div style="color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:12px;">// projection topilmadi</div></div>`;
+        }
+    }
+
+    function closePanel() {
+        document.getElementById('sidePanel').classList.remove('open');
+        document.getElementById('main-content').classList.remove('panel-open');
+        document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('row-active'));
+    }
+
+    function changeStatus(isFraud) {
+        currentIsFraud = isFraud;
+        document.getElementById('tab-aktiv').className = `tab-btn ${!isFraud ? 'active-tab' : ''}`;
+        document.getElementById('tab-fraud').className = `tab-btn fraud-tab ${isFraud ? 'active-tab' : ''}`;
+        document.getElementById('table-mode-label').textContent = isFraud ? 'Fraud foydalanuvchilar' : 'Aktiv foydalanuvchilar';
+        closePanel();
+        loadData();
+    }
+
+    function logout() {
+        localStorage.removeItem('admin_token');
+        window.location.href = '/form/admin/login';
+    }
+
+    window.addEventListener('load', () => { initUI(); loadData(); });
+</script>
+</body>
+</html>

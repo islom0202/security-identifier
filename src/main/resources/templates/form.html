@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Verification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f0ede8;
+            --surface: #faf9f7;
+            --surface2: #edeae4;
+            --border: #d8d3ca;
+            --border-focus: #1a1a1a;
+            --text-primary: #111110;
+            --text-secondary: #6b6660;
+            --text-muted: #a09b95;
+            --accent: #c8401a;
+            --accent-hover: #a83515;
+            --accent-soft: rgba(200,64,26,0.08);
+            --success: #1f7a4a;
+            --success-soft: rgba(31,122,74,0.1);
+            --error: #c8401a;
+            --error-soft: rgba(200,64,26,0.08);
+            --warning: #b87a10;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.08);
+            --radius: 14px;
+            --radius-sm: 8px;
+            --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0e0e0d;
+            --surface: #181816;
+            --surface2: #222220;
+            --border: #2e2e2b;
+            --border-focus: #e8e4dc;
+            --text-primary: #f0ede8;
+            --text-secondary: #8a857e;
+            --text-muted: #4a4640;
+            --accent: #e86040;
+            --accent-hover: #f07050;
+            --accent-soft: rgba(232,96,64,0.12);
+            --success: #3ab870;
+            --success-soft: rgba(58,184,112,0.12);
+            --error: #e86040;
+            --error-soft: rgba(232,96,64,0.12);
+            --warning: #e0a030;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background decorative elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -30%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(ellipse, var(--accent-soft) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            transition: var(--transition);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -20%;
+            left: -15%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(ellipse, rgba(100,80,60,0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 6px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-secondary);
+            font-weight: 500;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            letter-spacing: 0.01em;
+        }
+
+        .theme-toggle:hover {
+            background: var(--surface2);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .theme-icon { font-size: 15px; transition: transform 0.4s ease; }
+        .theme-toggle:hover .theme-icon { transform: rotate(20deg); }
+
+        /* Main Card */
+        .card {
+            position: relative;
+            z-index: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 460px;
+            overflow: hidden;
+            animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Card Header */
+        .card-header {
+            padding: 36px 36px 28px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .brand-mark {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%);
+        }
+
+        .brand-icon svg { color: white; }
+
+        .brand-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 300;
+            line-height: 1.5;
+        }
+
+        /* Security Badge */
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--success-soft);
+            color: var(--success);
+            border-radius: 50px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-top: 14px;
+        }
+
+        .security-badge-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.85); }
+        }
+
+        /* Card Body */
+        .card-body { padding: 28px 36px 36px; }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 18px;
+            animation: fieldIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.18s; }
+
+        @keyframes fieldIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            transition: color 0.2s ease;
+            pointer-events: none;
+            display: flex;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 13px 14px 13px 42px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--text-primary);
+            transition: var(--transition);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .form-input::placeholder { color: var(--text-muted); font-weight: 300; }
+
+        .form-input:focus {
+            border-color: var(--border-focus);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .form-input:focus + .input-focus-ring {
+            opacity: 1;
+        }
+
+        .input-wrapper:focus-within .input-icon {
+            color: var(--accent);
+        }
+
+        .form-input.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px var(--error-soft);
+        }
+
+        .form-input.success {
+            border-color: var(--success);
+        }
+
+        /* Input validation icons */
+        .input-status {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .input-status.show { opacity: 1; }
+        .input-status.valid { color: var(--success); }
+        .input-status.invalid { color: var(--error); }
+
+        .field-hint {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            padding-left: 2px;
+            transition: color 0.2s ease;
+        }
+
+        .field-hint.error-msg { color: var(--error); }
+
+        /* Phone prefix input */
+        .phone-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .phone-input-wrapper:focus-within {
+            border-color: var(--border-focus);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .phone-input-wrapper.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px var(--error-soft);
+        }
+
+        .phone-input-wrapper.success {
+            border-color: var(--success);
+        }
+
+        .phone-prefix {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 0 4px 0 13px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .uz-flag {
+            font-size: 18px;
+            line-height: 1;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+        }
+
+        .prefix-code {
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        .prefix-divider {
+            width: 1.5px;
+            height: 20px;
+            background: var(--border);
+            margin-left: 6px;
+            border-radius: 2px;
+            transition: background 0.2s ease;
+        }
+
+        .phone-input-wrapper:focus-within .prefix-divider {
+            background: var(--border-focus);
+            opacity: 0.3;
+        }
+
+        .phone-input {
+            border: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding-left: 10px !important;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .phone-input:focus { box-shadow: none !important; }
+
+        .phone-input-wrapper .input-status {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Location Section */
+        .location-section {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition);
+            animation: fieldIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.26s both;
+        }
+
+        .location-section.locating {
+            border-color: var(--warning);
+            background: rgba(184, 122, 16, 0.05);
+        }
+
+        .location-section.located {
+            border-color: var(--success);
+            background: var(--success-soft);
+        }
+
+        .location-section.error {
+            border-color: var(--error);
+            background: var(--error-soft);
+        }
+
+        .location-icon-wrap {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: var(--border);
+            transition: var(--transition);
+        }
+
+        .location-section.locating .location-icon-wrap { background: rgba(184,122,16,0.15); color: var(--warning); }
+        .location-section.located .location-icon-wrap { background: rgba(31,122,74,0.15); color: var(--success); }
+        .location-section.error .location-icon-wrap { background: var(--error-soft); color: var(--error); }
+
+        .location-text { flex: 1; }
+
+        .location-label {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .location-value {
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        .location-section.locating .location-value { color: var(--warning); }
+        .location-section.located .location-value { color: var(--success); }
+        .location-section.error .location-value { color: var(--error); }
+
+        /* Spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(184,122,16,0.3);
+            border-top-color: var(--warning);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: fieldIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .submit-btn:hover::before { left: 100%; }
+        .submit-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(200,64,26,0.35); }
+        .submit-btn:active { transform: translateY(0); box-shadow: none; }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .submit-btn:disabled::before { display: none; }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            max-width: 340px;
+            pointer-events: all;
+            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+        }
+
+        .toast.success::before { background: var(--success); }
+        .toast.error::before { background: var(--error); }
+        .toast.warning::before { background: var(--warning); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(20px) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateX(20px) scale(0.95); }
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--error); }
+        .toast.warning .toast-icon { color: var(--warning); }
+
+        .toast-content { flex: 1; }
+
+        .toast-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .toast-msg {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .toast-close {
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            flex-shrink: 0;
+            transition: color 0.2s ease;
+        }
+
+        .toast-close:hover { color: var(--text-primary); }
+
+        /* Success State */
+        .success-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 48px 36px;
+            animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .success-state.show { display: flex; }
+
+        .success-circle {
+            width: 72px;
+            height: 72px;
+            background: var(--success-soft);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: var(--success);
+            animation: successPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+        }
+
+        @keyframes successPop {
+            from { opacity: 0; transform: scale(0.6); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .success-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .success-msg {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 300;
+            line-height: 1.6;
+            max-width: 280px;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 6px 0 20px;
+        }
+
+        .divider-line { flex: 1; height: 1px; background: var(--border); }
+        .divider-text { font-size: 11px; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; }
+
+        /* Responsive */
+        @media (max-width: 520px) {
+            body { padding: 16px; align-items: flex-start; padding-top: 60px; }
+            .card { border-radius: 18px; }
+            .card-header { padding: 24px 24px 20px; }
+            .card-body { padding: 20px 24px 28px; }
+            .card-title { font-size: 24px; }
+            .toast-container { left: 16px; right: 16px; bottom: 16px; }
+            .toast { max-width: 100%; }
+            .success-state { padding: 36px 24px; }
+        }
+        /* Small location denied banner */
+        .loc-banner {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 11px 14px;
+            margin-bottom: 18px;
+            animation: bannerIn 0.3s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        .loc-banner.show { display: flex; }
+
+        @keyframes bannerIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .loc-banner-icon {
+            font-size: 17px;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .loc-banner-text {
+            flex: 1;
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .loc-banner-text strong {
+            display: block;
+            font-size: 12.5px;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1px;
+        }
+
+        .loc-banner-link {
+            font-size: 11.5px;
+            color: var(--accent);
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            transition: opacity 0.2s;
+        }
+
+        .loc-banner-link:hover { opacity: 0.75; }
+    </style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+    <span class="theme-icon" id="themeIcon">☀️</span>
+    <span id="themeLabel">Light</span>
+</button>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="card">
+    <!-- Header -->
+    <div class="card-header">
+        <div class="brand-mark">
+            <div class="brand-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+            <span class="brand-name">SecureVerify</span>
+        </div>
+        <h1 class="card-title">Identity<br>Verification</h1>
+        <p class="card-subtitle">Enter your details to complete the secure registration process.</p>
+        <div class="security-badge">
+            <div class="security-badge-dot"></div>
+            Encrypted & Secure
+        </div>
+    </div>
+
+    <!-- Form Body -->
+    <div class="card-body" id="formBody">
+        <input type="hidden" id="adminId" th:value="${adminId}" value="demo-admin-id">
+
+        <!-- Location banner — shows only when GPS is blocked or needs action -->
+        <div class="loc-banner" id="locBanner">
+            <span class="loc-banner-icon">📍</span>
+            <div class="loc-banner-text" id="locBannerText">
+                <strong>Getting your location…</strong>
+            </div>
+            <button class="loc-banner-link" id="locBannerAction" style="display:none"></button>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="phone">Phone Number</label>
+            <div class="phone-input-wrapper" id="phoneWrapper">
+                <div class="phone-prefix">
+                    <span class="uz-flag">🇺🇿</span>
+                    <span class="prefix-code">+998</span>
+                    <div class="prefix-divider"></div>
+                </div>
+                <input class="form-input phone-input" type="tel" id="phone"
+                       placeholder="90 000 00 00" autocomplete="tel"
+                       maxlength="12" oninput="validatePhone(this)" onkeypress="return onlyDigits(event)">
+                <span class="input-status" id="phoneStatus"></span>
+            </div>
+            <p class="field-hint" id="phoneHint">Enter 9 digits after +998</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="code">Verification Code</label>
+            <div class="input-wrapper">
+                    <span class="input-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </span>
+                <input class="form-input" type="text" id="code" placeholder="Enter your code" maxlength="20" oninput="validateCode(this)">
+                <span class="input-status" id="codeStatus"></span>
+            </div>
+            <p class="field-hint" id="codeHint">Code provided by your administrator</p>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitForm()" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span id="btnText">Submit Verification</span>
+        </button>
+    </div>
+
+    <!-- Success State -->
+    <div class="success-state" id="successState">
+        <div class="success-circle">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+        <div class="success-title">Verified!</div>
+        <p class="success-msg">Your identity has been successfully verified. You're all set.</p>
+    </div>
+</div>
+
+<script>
+    // ─── Theme ───────────────────────────────────────────────────────────────
+    const saved = localStorage.getItem('theme') || 'light';
+    applyTheme(saved);
+
+    function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        document.getElementById('themeIcon').textContent = t === 'dark' ? '🌙' : '☀️';
+        document.getElementById('themeLabel').textContent = t === 'dark' ? 'Dark' : 'Light';
+        localStorage.setItem('theme', t);
+    }
+
+    function toggleTheme() {
+        const cur = document.documentElement.getAttribute('data-theme');
+        applyTheme(cur === 'dark' ? 'light' : 'dark');
+    }
+
+    // ─── Location ─────────────────────────────────────────────────────────────
+    let locationData = null;
+
+    function showBanner(type, msg) {
+        const banner = document.getElementById('locBanner');
+        const text   = document.getElementById('locBannerText');
+        const action = document.getElementById('locBannerAction');
+        text.innerHTML = msg;
+
+        if (type === 'tap') {
+            action.textContent = '📍 Tap to enable';
+            action.style.display = 'inline';
+            action.onclick = () => { action.style.display = 'none'; grabLocation(); };
+        } else if (type === 'denied') {
+            action.textContent = 'How to fix →';
+            action.style.display = 'inline';
+            action.onclick = () => location.reload();
+        } else {
+            action.style.display = 'none';
+        }
+
+        banner.classList.add('show');
+    }
+
+    function hideBanner() {
+        document.getElementById('locBanner').classList.remove('show');
+    }
+
+    function grabLocation() {
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                locationData = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+                hideBanner();
+                updateSubmitBtn();
+            },
+            err => {
+                if (err.code === 1) {
+                    showBanner('denied', '<strong>Location blocked</strong>Enable in browser settings');
+                } else {
+                    // Timeout or unavailable — offer tap retry
+                    showBanner('tap', '<strong>Couldn\'t get location</strong>Tap to try again');
+                }
+                updateSubmitBtn();
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+        );
+    }
+
+    window.addEventListener('load', () => {
+        // ── 1. HTTPS check — mobile browsers block GPS on plain HTTP ──────────
+        const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        if (!isSecure) {
+            showBanner('none', '<strong>HTTPS required for location</strong>Ask admin to enable SSL');
+            updateSubmitBtn();
+            return;
+        }
+
+        // ── 2. API availability check ─────────────────────────────────────────
+        if (!navigator.geolocation) {
+            showBanner('none', '<strong>GPS not supported</strong>Try a different browser');
+            updateSubmitBtn();
+            return;
+        }
+
+        // ── 3. Permissions API (Chrome/Android) — skip prompt if already granted ──
+        const tryWithPermissionsAPI = () => {
+            navigator.permissions.query({ name: 'geolocation' })
+                .then(status => {
+                    if (status.state === 'denied') {
+                        showBanner('denied', '<strong>Location blocked</strong>Enable in browser settings');
+                        updateSubmitBtn();
+                    } else {
+                        grabLocation(); // 'granted' = silent; 'prompt' = browser native dialog
+                    }
+
+                    // Auto-react if user changes setting without reloading
+                    status.onchange = () => {
+                        if (status.state === 'granted') grabLocation();
+                        else if (status.state === 'denied') {
+                            locationData = null;
+                            showBanner('denied', '<strong>Location blocked</strong>Enable in browser settings');
+                            updateSubmitBtn();
+                        }
+                    };
+                })
+                .catch(() => grabLocation()); // permissions query failed — try directly
+        };
+
+        // ── 4. iOS Safari has no Permissions API — fall back to tap button ────
+        try {
+            if (navigator.permissions && navigator.permissions.query) {
+                tryWithPermissionsAPI();
+            } else {
+                // iOS Safari: needs user gesture on first visit; show tap button
+                showBanner('tap', '<strong>Location needed</strong>Tap to share your position');
+                // But try silently first — works if user already granted before
+                grabLocation();
+            }
+        } catch (e) {
+            grabLocation();
+        }
+    });
+
+    // ─── Validation ──────────────────────────────────────────────────────────
+    function setInputState(input, statusEl, hintEl, valid, msg) {
+        input.className = 'form-input ' + (valid ? 'success' : 'error');
+        statusEl.className = 'input-status show ' + (valid ? 'valid' : 'invalid');
+        statusEl.innerHTML = valid
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+        if (msg) { hintEl.textContent = msg; hintEl.className = 'field-hint ' + (valid ? '' : 'error-msg'); }
+    }
+
+    function resetInput(input, statusEl, hintEl, defaultMsg) {
+        input.className = 'form-input';
+        statusEl.className = 'input-status';
+        hintEl.textContent = defaultMsg;
+        hintEl.className = 'field-hint';
+    }
+
+    function onlyDigits(e) {
+        return /[0-9\s]/.test(e.key);
+    }
+
+    function validatePhone(el) {
+        const wrapper = document.getElementById('phoneWrapper');
+        const status = document.getElementById('phoneStatus');
+        const hint = document.getElementById('phoneHint');
+        const digits = el.value.replace(/\D/g, '');
+
+        // Auto-format: XX XXX XX XX
+        let formatted = '';
+        if (digits.length > 0) formatted = digits.substring(0, 2);
+        if (digits.length > 2) formatted += ' ' + digits.substring(2, 5);
+        if (digits.length > 5) formatted += ' ' + digits.substring(5, 7);
+        if (digits.length > 7) formatted += ' ' + digits.substring(7, 9);
+        el.value = formatted;
+
+        if (!digits) {
+            wrapper.className = 'phone-input-wrapper';
+            status.className = 'input-status';
+            hint.textContent = 'Enter 9 digits after +998';
+            hint.className = 'field-hint';
+            updateSubmitBtn(); return;
+        }
+
+        const ok = digits.length === 9;
+        wrapper.className = 'phone-input-wrapper ' + (ok ? 'success' : 'error');
+        setInputState(el, status, hint, ok,
+            ok ? 'Valid Uzbekistan number' : `${digits.length}/9 digits entered`);
+        updateSubmitBtn();
+    }
+
+    function validateCode(el) {
+        const status = document.getElementById('codeStatus');
+        const hint = document.getElementById('codeHint');
+        const val = el.value.trim();
+        if (!val) { resetInput(el, status, hint, 'Code provided by your administrator'); updateSubmitBtn(); return; }
+        const ok = val.length >= 3;
+        setInputState(el, status, hint, ok, ok ? 'Code looks good' : 'Code is too short');
+        updateSubmitBtn();
+    }
+
+    function isFormValid() {
+        const digits = document.getElementById('phone').value.replace(/\D/g, '');
+        const code = document.getElementById('code').value.trim();
+        return digits.length === 9 && code.length >= 3 && locationData !== null;
+    }
+
+    function updateSubmitBtn() {
+        const btn = document.getElementById('submitBtn');
+        const txt = document.getElementById('btnText');
+        if (!txt) return;
+        const valid = isFormValid();
+        btn.disabled = !valid;
+        txt.textContent = valid ? 'Submit Verification' : 'Complete the Form';
+    }
+
+    // ─── Toast ───────────────────────────────────────────────────────────────
+    function showToast(type, title, msg) {
+        const icons = {
+            success: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+            error:   `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+            warning: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+        };
+        const c = document.getElementById('toastContainer');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerHTML = `<div class="toast-icon">${icons[type]}</div><div class="toast-content"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><div class="toast-close" onclick="this.parentElement.remove()">×</div>`;
+        c.appendChild(t);
+        setTimeout(() => { t.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 5000);
+    }
+
+    // Shared button reset helper — always restores id="btnText"
+    function resetBtn() {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span id="btnText">Submit Verification</span>`;
+        updateSubmitBtn(); // re-evaluate disabled state based on form validity
+    }
+
+    // ─── Submit ───────────────────────────────────────────────────────────────
+    function getDeviceId() {
+    let deviceId = localStorage.getItem('device_id');
+
+    if (!deviceId) {
+        // Generate a random UUID
+        deviceId = 'dev-' + Math.random().toString(36).substring(2, 15) +
+                   Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('device_id', deviceId);
+    }
+    return deviceId;
+}
+
+    function submitForm() {
+        if (!isFormValid()) return;
+
+        const btn = document.getElementById('submitBtn');
+
+        btn.disabled = true;
+        btn.innerHTML = `<div class="spinner" style="border-color:rgba(255,255,255,0.3);border-top-color:white;width:18px;height:18px;"></div><span id="btnText">Submitting…</span>`;
+
+        const payload = {
+            adminId: document.getElementById('adminId').value,
+            phone: '+998' + document.getElementById('phone').value.replace(/\D/g, ''),
+            code: document.getElementById('code').value.trim(),
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            deviceId: getDeviceId()
+        };
+
+        fetch('/form/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.text().then(text => ({ ok: res.ok, status: res.status, text })))
+        .then(({ ok, status, text }) => {
+            if (ok) {
+                document.getElementById('formBody').style.display = 'none';
+                document.getElementById('successState').classList.add('show');
+            } else {
+                resetBtn(); // ✅ Fix 2: restores id="btnText" before updateSubmitBtn runs
+                if (status === 400) showToast('warning', 'Already Registered', text || 'This phone number is already registered.');
+                else if (status === 403) showToast('error', 'Access Denied', text || 'Your location or access is restricted.');
+                else showToast('error', 'Submission Failed', text || 'An unexpected error occurred. Please try again.');
+            }
+        })
+        .catch(() => {
+            resetBtn(); // ✅ Fix 2: same here
+            showToast('error', 'Network Error', 'Could not reach the server. Check your connection.');
+        });
+    }
+</script>
+</body>
+</html>

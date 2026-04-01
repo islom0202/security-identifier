@@ -1,0 +1,34 @@
+  spring:
+    application:
+      name: antifraud
+  
+    datasource:
+      hikari:
+        maximum-pool-size: 50
+        minimum-idle: 5
+        connection-timeout: 30000
+      url: jdbc:postgresql://localhost:5432/antifraud
+      driver-class-name: org.postgresql.Driver
+      username: postgres
+      password: 08062002
+  
+    jpa:
+      hibernate:
+        ddl-auto: none
+  
+    liquibase:
+      enabled: true
+      change-log: classpath:/db/db.changelog-master.yaml
+  
+  server:
+    port: 9091
+  
+  logging:
+    level:
+      root: ERROR
+      antifraud.example.antifraud: DEBUG
+      org.springframework: ERROR
+      liquibase: ERROR
+      org.springframework.security.oauth2.client: DEBUG
+      org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
+      org.springframework.security.oauth2.core: TRACE

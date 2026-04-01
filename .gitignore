@@ -1,0 +1,50 @@
+HELP.md
+.idea
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+.gradle/
+.tmp/
+caches/
+daemon/
+native/
+wrapper/
+.idea/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+cashes
+jdks
+.tmp
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+*.iws
+*.iml
+*.ipr
+*.lock
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/caches/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/

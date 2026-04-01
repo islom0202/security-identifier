@@ -1,0 +1,1057 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="uz">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>AntiFraud | Links & Conversion</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">-->
+<!--    <style>-->
+<!--        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }-->
+<!--        .active-link-row { background-color: #eff6ff !important; border-left: 4px solid #2563eb; }-->
+<!--        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }-->
+<!--        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }-->
+<!--        .table-container { overflow-x: auto; }-->
+<!--        th { white-space: nowrap; }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="flex min-h-screen">-->
+
+<!--<aside class="w-64 bg-slate-900 text-slate-300 flex flex-col fixed h-full z-50 shadow-2xl">-->
+<!--    <div class="p-6 border-b border-slate-800 flex items-center gap-3">-->
+<!--        <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">AF</div>-->
+<!--        <span class="text-white font-bold tracking-tight text-lg">AntiFraud Admin</span>-->
+<!--    </div>-->
+<!--    <nav class="flex-1 p-4 space-y-1">-->
+<!--        <a href="/form/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-all text-sm">Dashboard</a>-->
+<!--        <a href="/form/admin/users" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-all text-sm">Foydalanuvchilar</a>-->
+<!--        <a href="/form/admin/links" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600 text-white font-bold shadow-lg text-sm">Havolalar</a>-->
+<!--    </nav>-->
+<!--</aside>-->
+
+<!--<main class="ml-64 flex-1 p-8">-->
+
+<!--    <header class="flex justify-between items-center mb-10">-->
+<!--        <div>-->
+<!--            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Havolalar Boshqaruvi</h1>-->
+<!--            <p class="text-slate-500 text-sm mt-1">Yaratilgan barcha havolalar va ularning samaradorligi</p>-->
+<!--        </div>-->
+
+<!--        <div class="flex items-center gap-4">-->
+<!--            <div class="flex bg-slate-200/50 p-1 rounded-xl border border-slate-200">-->
+<!--                <button onclick="filterByStatus('all')" id="btn-all" class="px-5 py-2 rounded-lg text-[11px] font-bold transition-all bg-white text-blue-600 shadow-sm">Barchasi</button>-->
+<!--                <button onclick="filterByStatus('active')" id="btn-active" class="px-5 py-2 rounded-lg text-[11px] font-bold transition-all text-slate-500 hover:text-slate-700">Aktiv</button>-->
+<!--                <button onclick="filterByStatus('expired')" id="btn-expired" class="px-5 py-2 rounded-lg text-[11px] font-bold transition-all text-slate-500 hover:text-slate-700">Muddati o'tgan</button>-->
+<!--            </div>-->
+
+<!--            <button onclick="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all transform hover:-translate-y-1">-->
+<!--                <span>+</span> Link yaratish-->
+<!--            </button>-->
+<!--        </div>-->
+<!--    </header>-->
+
+<!--    <div class="space-y-10">-->
+<!--        <section>-->
+<!--            <div class="flex items-center gap-2 mb-4 text-slate-400 uppercase text-[10px] font-black tracking-widest">-->
+<!--                <div class="w-2 h-2 bg-blue-500 rounded-full"></div> Admin Tomonidan Yaratilgan Linklar-->
+<!--            </div>-->
+<!--            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200 table-container">-->
+<!--                <table class="w-full text-left border-collapse">-->
+<!--                    <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase">-->
+<!--                    <tr>-->
+<!--                        <th class="px-6 py-4">ID</th>-->
+<!--                        <th class="px-6 py-4">Admin Name</th>-->
+<!--                        <th class="px-6 py-4">Generated Link</th>-->
+<!--                        <th class="px-6 py-4">Yaratilgan</th>-->
+<!--                        <th class="px-6 py-4">Amal qilish</th>-->
+<!--                        <th class="px-6 py-4">Status</th>-->
+<!--                    </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody id="linksTable" class="divide-y divide-slate-100">-->
+<!--                    <tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">Yuklanmoqda...</td></tr>-->
+<!--                    </tbody>-->
+<!--                </table>-->
+<!--            </div>-->
+<!--        </section>-->
+
+<!--        <section id="usersSection" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">-->
+<!--            <div class="flex items-center justify-between mb-4">-->
+<!--                <div class="flex items-center gap-2 text-slate-400 uppercase text-[10px] font-black tracking-widest">-->
+<!--                    <div class="w-2 h-2 bg-green-500 rounded-full"></div> Havolaga bog'langan foydalanuvchilar (UsersList)-->
+<!--                </div>-->
+<!--                <span id="selectedLinkTag" class="text-[10px] bg-blue-100 text-blue-600 px-4 py-1.5 rounded-full font-bold"></span>-->
+<!--            </div>-->
+<!--            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200 table-container">-->
+<!--                <table class="w-full text-left border-collapse">-->
+<!--                    <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase">-->
+<!--                    <tr>-->
+<!--                        <th class="px-6 py-4">User ID</th>-->
+<!--                        <th class="px-6 py-4">Telefon</th>-->
+<!--                        <th class="px-6 py-4">Kod</th>-->
+<!--                        <th class="px-6 py-4">IP Manzil</th>-->
+<!--                        <th class="px-6 py-4">Device ID</th>-->
+<!--                        <th class="px-4 py-4 text-center">Fraud?</th>-->
+<!--                        <th class="px-6 py-4">Bosilgan vaqt</th>-->
+<!--                    </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody id="linkedUsersTable" class="divide-y divide-slate-100 text-sm">-->
+<!--                    </tbody>-->
+<!--                </table>-->
+<!--            </div>-->
+<!--        </section>-->
+<!--    </div>-->
+<!--</main>-->
+
+<!--<div id="createModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 modal-overlay">-->
+<!--    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8">-->
+<!--        <h3 class="text-xl font-bold text-slate-900 mb-2">Yangi havola yaratish</h3>-->
+<!--        <p class="text-slate-500 text-sm mb-6">Amal qilish muddatini daqiqalarda belgilang (masalan: 60).</p>-->
+<!--        <div class="space-y-4">-->
+<!--            <div>-->
+<!--                <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Muddat (min)</label>-->
+<!--                <input id="expireInput" type="number" value="60" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold transition-all">-->
+<!--            </div>-->
+<!--            <button onclick="submitCreateLink()" id="btnSubmit" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-black transition-all shadow-lg">Linkni generatsiya qilish</button>-->
+<!--            <button onclick="closeModal()" class="w-full py-2 text-slate-400 text-sm font-medium">Bekor qilish</button>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<div id="resultPopup" class="fixed bottom-10 right-10 z-[110] hidden">-->
+<!--    <div class="bg-white border-l-4 border-green-500 shadow-2xl p-6 rounded-2xl flex items-center gap-6 min-w-[380px] animate-in slide-in-from-right-10">-->
+<!--        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold text-xl">✓</div>-->
+<!--        <div class="flex-1">-->
+<!--            <h4 class="font-bold text-slate-900 text-sm">Havola muvaffaqiyatli yaratildi!</h4>-->
+<!--            <p id="newLinkUrl" class="text-[10px] text-blue-600 font-mono mt-1 break-all"></p>-->
+<!--        </div>-->
+<!--        <button onclick="document.getElementById('resultPopup').classList.add('hidden')" class="text-slate-300 hover:text-slate-500">✕</button>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--    const API_LINK = '/api/link';-->
+<!--    let allLinksData = [];-->
+<!--    let currentFilter = 'all';-->
+
+<!--    const getAuth = () => {-->
+<!--        try {-->
+<!--            const rawToken = localStorage.getItem('admin_token');-->
+<!--            if (!rawToken) return null;-->
+<!--            const token = rawToken.includes('.') ? rawToken : atob(rawToken);-->
+<!--            const payload = JSON.parse(atob(token.split('.')[1]));-->
+<!--            return { token, adminId: payload.id || payload.adminId };-->
+<!--        } catch (e) {-->
+<!--            console.error("Auth o'qishda xato:", e);-->
+<!--            return null;-->
+<!--        }-->
+<!--    };-->
+
+<!--    const session = getAuth();-->
+
+<!--    async function init() {-->
+<!--        if (!session || !session.adminId) return window.location.href = '/form/login';-->
+<!--        loadAdminLinks();-->
+<!--    }-->
+
+<!--    // 1. Fetch /list/{adminId}-->
+<!--    async function loadAdminLinks() {-->
+<!--        const tbody = document.getElementById('linksTable');-->
+<!--        try {-->
+<!--            const res = await fetch(`${API_LINK}/list/${session.adminId}`, {-->
+<!--                headers: { 'Authorization': `Bearer ${session.token}` }-->
+<!--            });-->
+<!--            if(!res.ok) throw new Error("Server xatosi: " + res.status);-->
+
+<!--            allLinksData = await res.json();-->
+<!--            filterByStatus(currentFilter);-->
+<!--        } catch (err) {-->
+<!--            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-red-500">Xatolik: ${err.message}</td></tr>`;-->
+<!--        }-->
+<!--    }-->
+
+<!--    function filterByStatus(status) {-->
+<!--        currentFilter = status;-->
+
+<!--        // Tab UI-->
+<!--        ['all', 'active', 'expired'].forEach(s => {-->
+<!--            const btn = document.getElementById(`btn-${s}`);-->
+<!--            if (s === status) {-->
+<!--                btn.className = "px-5 py-2 rounded-lg text-[11px] font-bold transition-all bg-white text-blue-600 shadow-sm";-->
+<!--            } else {-->
+<!--                btn.className = "px-5 py-2 rounded-lg text-[11px] font-bold transition-all text-slate-500 hover:text-slate-700";-->
+<!--            }-->
+<!--        });-->
+
+<!--        let filtered = allLinksData;-->
+<!--        if (status === 'active') filtered = allLinksData.filter(l => !l.isExpired);-->
+<!--        if (status === 'expired') filtered = allLinksData.filter(l => l.isExpired);-->
+
+<!--        renderLinks(filtered);-->
+<!--    }-->
+
+<!--    function renderLinks(links) {-->
+<!--        const tbody = document.getElementById('linksTable');-->
+<!--        if (links.length === 0) {-->
+<!--            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">Ma'lumot topilmadi</td></tr>`;-->
+<!--            return;-->
+<!--        }-->
+<!--        tbody.innerHTML = links.map(l => `-->
+<!--            <tr class="hover:bg-slate-50 transition-all cursor-pointer group" onclick="fetchLinkedUsers(${l.id}, this)">-->
+<!--                <td class="px-6 py-5 font-bold text-slate-400 text-xs">#${l.id}</td>-->
+<!--                <td class="px-6 py-5 text-sm font-semibold text-slate-700">${l.adminName || 'Admin'}</td>-->
+<!--                <td class="px-6 py-5">-->
+<!--                    <span class="text-sm font-bold text-blue-600 font-mono">${l.generatedLink}</span>-->
+<!--                </td>-->
+<!--                <td class="px-6 py-5 text-[11px] text-slate-500">-->
+<!--                    ${new Date(l.createdAt).toLocaleString()}-->
+<!--                </td>-->
+<!--                <td class="px-6 py-5 text-[11px] text-slate-500">-->
+<!--                    ${new Date(l.expiresAt).toLocaleString()}-->
+<!--                </td>-->
+<!--                <td class="px-6 py-5">-->
+<!--                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${l.isExpired ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">-->
+<!--                        <span class="status-dot ${l.isExpired ? 'bg-red-500' : 'bg-green-500'}"></span>-->
+<!--                        ${l.isExpired ? 'Expired' : 'Active'}-->
+<!--                    </span>-->
+<!--                </td>-->
+<!--            </tr>-->
+<!--        `).join('');-->
+<!--    }-->
+
+<!--    // 2. Fetch /users/{linkId} when item clicked-->
+<!--    async function fetchLinkedUsers(linkId, el) {-->
+<!--        // UI highlight-->
+<!--        document.querySelectorAll('tr').forEach(r => r.classList.remove('active-link-row'));-->
+<!--        el.classList.add('active-link-row');-->
+
+<!--        const usersSection = document.getElementById('usersSection');-->
+<!--        const tbody = document.getElementById('linkedUsersTable');-->
+
+<!--        usersSection.classList.remove('hidden');-->
+<!--        document.getElementById('selectedLinkTag').innerText = `ID: #${linkId}`;-->
+<!--        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-10 text-center text-slate-400 animate-pulse italic font-medium">Foydalanuvchilar yuklanmoqda...</td></tr>';-->
+
+<!--        try {-->
+<!--            // FIX: Siz so'ragan /api/link/users/{linkId} metodi chaqirilmoqda-->
+<!--            const res = await fetch(`${API_LINK}/users/${linkId}`, {-->
+<!--                headers: { 'Authorization': `Bearer ${session.token}` }-->
+<!--            });-->
+
+<!--            if(!res.ok) throw new Error("Foydalanuvchilarni yuklashda xatolik");-->
+
+<!--            const users = await res.json();-->
+<!--            renderUsers(users);-->
+
+<!--            // Scroll to details-->
+<!--            usersSection.scrollIntoView({ behavior: 'smooth', block: 'start' });-->
+<!--        } catch (err) {-->
+<!--            tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-red-500 font-medium">${err.message}</td></tr>`;-->
+<!--        }-->
+<!--    }-->
+
+<!--    function renderUsers(users) {-->
+<!--        const tbody = document.getElementById('linkedUsersTable');-->
+<!--        if(!users || users.length === 0) {-->
+<!--            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">Hali ushbu havola orqali hech kim kirmagan</td></tr>';-->
+<!--            return;-->
+<!--        }-->
+<!--        tbody.innerHTML = users.map(u => `-->
+<!--            <tr class="hover:bg-slate-50 transition-all">-->
+<!--                <td class="px-6 py-4 text-xs font-bold text-blue-500">${u.userId}</td>-->
+<!--                <td class="px-6 py-4 font-bold text-slate-800">${u.userPhone}</td>-->
+<!--                <td class="px-6 py-4 text-xs font-mono text-green-600 font-bold">${u.userCode || '-'}</td>-->
+<!--                <td class="px-6 py-4 font-mono text-xs text-slate-500">${u.userIp}</td>-->
+<!--                <td class="px-6 py-4 font-mono text-[10px] text-slate-400 truncate max-w-[150px]">${u.userDeviceId || 'N/A'}</td>-->
+<!--                <td class="px-4 py-4 text-center">-->
+<!--                    <span class="px-2 py-1 rounded text-[10px] font-black ${u.isFraud ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}">-->
+<!--                        ${u.isFraud ? 'RISK' : 'SAFE'}-->
+<!--                    </span>-->
+<!--                </td>-->
+<!--                <td class="px-6 py-4 text-[11px] text-slate-500">${new Date(u.clickedAt).toLocaleString()}</td>-->
+<!--            </tr>-->
+<!--        `).join('');-->
+<!--    }-->
+
+<!--    // 3. Create Link-->
+<!--    async function submitCreateLink() {-->
+<!--        const expireTime = document.getElementById('expireInput').value;-->
+<!--        const btn = document.getElementById('btnSubmit');-->
+<!--        btn.innerText = 'Yaratilmoqda...';-->
+<!--        btn.disabled = true;-->
+
+<!--        try {-->
+<!--            const res = await fetch(`/api/admin/create-link/${session.adminId}?expireTime=${expireTime}`, {-->
+<!--                method: 'POST',-->
+<!--                headers: { 'Authorization': `Bearer ${session.token}` }-->
+<!--            });-->
+<!--            if(!res.ok) throw new Error("Yaratishda xatolik");-->
+
+<!--            const linkObj = await res.json();-->
+<!--            closeModal();-->
+<!--            document.getElementById('newLinkUrl').innerText = linkObj.generatedLink;-->
+<!--            document.getElementById('resultPopup').classList.remove('hidden');-->
+
+<!--            loadAdminLinks(); // Refresh list-->
+<!--        } catch (err) { alert('Xatolik yuz berdi!'); }-->
+<!--        finally { btn.innerText = 'Linkni generatsiya qilish'; btn.disabled = false; }-->
+<!--    }-->
+
+<!--    function openCreateModal() { document.getElementById('createModal').classList.remove('hidden'); }-->
+<!--    function closeModal() { document.getElementById('createModal').classList.add('hidden'); }-->
+
+<!--    window.onload = init;-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AntiFraud · Linklar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-base:      #0a0d14;
+            --bg-surface:   #111622;
+            --bg-elevated:  #171e2e;
+            --bg-hover:     #1c2538;
+            --border:       #1f2d45;
+            --border-light: #263347;
+            --text-primary: #e8edf7;
+            --text-secondary:#7a8aaa;
+            --text-muted:   #4a5670;
+            --accent:       #3b82f6;
+            --accent-dim:   rgba(59,130,246,0.12);
+            --accent-glow:  rgba(59,130,246,0.25);
+            --cyan:         #06b6d4;
+            --cyan-dim:     rgba(6,182,212,0.10);
+            --green:        #10b981;
+            --green-dim:    rgba(16,185,129,0.10);
+            --red:          #f43f5e;
+            --red-dim:      rgba(244,63,94,0.10);
+            --amber:        #f59e0b;
+            --amber-dim:    rgba(245,158,11,0.10);
+            --purple:       #a855f7;
+            --sidebar-w:    260px;
+            --radius-sm:    6px;
+            --radius-md:    10px;
+            --radius-lg:    14px;
+            --radius-xl:    20px;
+        }
+
+        html, body { height: 100%; }
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 99px; }
+
+        /* ─── SIDEBAR ─── */
+        aside {
+            width: var(--sidebar-w);
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            position: fixed; height: 100vh;
+            z-index: 50; overflow: hidden;
+        }
+        aside::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 0;
+        }
+        .sidebar-content { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
+
+        .sidebar-brand {
+            padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .brand-icon {
+            width: 32px; height: 32px;
+            background: var(--accent-dim); border: 1px solid rgba(59,130,246,0.25);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent);
+        }
+        .brand-name {
+            font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+            color: var(--text-secondary); letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        .sidebar-profile {
+            padding: 16px 16px 14px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .profile-avatar {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--cyan));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 15px; color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 1px rgba(59,130,246,0.3), 0 4px 16px rgba(59,130,246,0.2);
+            letter-spacing: -0.5px;
+        }
+        .profile-info { min-width: 0; }
+        .profile-name { font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+        .profile-phone { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted); margin-top: 3px; letter-spacing: 0.5px; }
+
+        nav { flex: 1; padding: 14px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .nav-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); padding: 6px 12px 4px; margin-top: 6px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 11px;
+            padding: 9px 12px; border-radius: var(--radius-md);
+            font-size: 13px; font-weight: 500; color: var(--text-secondary);
+            text-decoration: none; transition: all 0.15s ease;
+            cursor: pointer; border: none; background: none; width: 100%; text-align: left; position: relative;
+        }
+        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 3px; height: 60%; background: var(--accent); border-radius: 0 3px 3px 0;
+        }
+        .nav-item.danger { color: var(--red); }
+        .nav-item.danger:hover { background: var(--red-dim); }
+        .nav-divider { height: 1px; background: var(--border); margin: 10px 12px; }
+
+        /* ─── MAIN ─── */
+        main { margin-left: var(--sidebar-w); flex: 1; padding: 32px 36px; min-height: 100vh; }
+        main::before {
+            content: ''; position: fixed;
+            top: 0; left: var(--sidebar-w); right: 0; bottom: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.18; pointer-events: none; z-index: 0;
+        }
+        .page-content { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 28px; }
+
+        /* ─── HEADER ─── */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .page-title { font-size: 26px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; line-height: 1; }
+        .page-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); margin-top: 6px; letter-spacing: 0.5px; }
+
+        .header-right { display: flex; align-items: center; gap: 12px; }
+
+        /* ─── FILTER TABS ─── */
+        .tab-group {
+            display: flex; background: var(--bg-surface);
+            border: 1px solid var(--border); border-radius: var(--radius-md); padding: 3px; gap: 2px;
+        }
+        .tab-btn {
+            padding: 7px 16px; border-radius: var(--radius-sm);
+            font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+            letter-spacing: 1px; text-transform: uppercase;
+            cursor: pointer; border: none; color: var(--text-muted); background: transparent;
+            transition: all 0.15s ease; display: flex; align-items: center; gap: 5px;
+        }
+        .tab-btn.active-tab { background: var(--bg-elevated); color: var(--accent); border: 1px solid var(--border-light); }
+        .tab-btn.expired-tab.active-tab { color: var(--red); }
+        .tab-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+        /* ─── BUTTON ─── */
+        .btn-primary {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 18px; background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-md);
+            font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.15s ease;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 0 30px var(--accent-glow); }
+
+        /* ─── TABLE SECTION ─── */
+        .section-label {
+            display: flex; align-items: center; gap: 8px;
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .section-label-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+        .table-wrapper { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+        .table-header-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .table-title { font-size: 13px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .table-count { font-family: 'IBM Plex Mono', monospace; font-size: 10px; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(59,130,246,0.2); padding: 2px 8px; border-radius: 99px; }
+        .table-scroll { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        thead tr { background: var(--bg-elevated); border-bottom: 1px solid var(--border); }
+        th { padding: 10px 18px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); text-align: left; white-space: nowrap; }
+
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; cursor: pointer; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--bg-hover); }
+        tbody tr.row-active { background: var(--accent-dim); box-shadow: inset 3px 0 0 var(--accent); }
+
+        td { padding: 13px 18px; font-size: 12px; color: var(--text-secondary); vertical-align: middle; white-space: nowrap; }
+        .td-id { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); }
+        .td-mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+        .td-bold { font-weight: 700; color: var(--text-primary); }
+        .td-link { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); max-width: 250px; overflow: hidden; text-overflow: ellipsis; }
+
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 99px;
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 1px;
+        }
+        .pill-active { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+        .pill-expired { background: var(--red-dim); color: var(--red); border: 1px solid rgba(244,63,94,0.2); }
+        .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+        /* Users sub-table — slightly dimmer */
+        #usersSection { animation: fadeSlideUp 0.25s ease; }
+        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .badge-fraud { background: var(--red-dim); color: var(--red); border: 1px solid rgba(244,63,94,0.2); }
+        .badge-safe  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+        .sub-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; }
+
+        .selected-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+            background: var(--accent-dim); color: var(--accent);
+            border: 1px solid rgba(59,130,246,0.2);
+            padding: 4px 12px; border-radius: 99px;
+        }
+
+        .empty-state { padding: 50px 20px; text-align: center; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+        .spin { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-row td { text-align: center; padding: 40px; }
+
+        /* ─── MODAL ─── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px); z-index: 100;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: var(--bg-surface); border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl); width: 100%; max-width: 400px;
+            padding: 28px; box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+            animation: slideUp 0.2s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+        .modal-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted); margin-bottom: 22px; letter-spacing: 0.5px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; letter-spacing: 0.3px; }
+        .form-input {
+            width: 100%; padding: 10px 13px;
+            background: var(--bg-elevated); border: 1px solid var(--border-light);
+            border-radius: var(--radius-md); color: var(--text-primary);
+            font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600;
+            outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+        .form-hint { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted); margin-top: 6px; }
+        .modal-footer { display: flex; gap: 10px; margin-top: 22px; }
+        .btn-ghost {
+            flex: 1; padding: 10px; background: var(--bg-elevated);
+            border: 1px solid var(--border-light); border-radius: var(--radius-md);
+            color: var(--text-secondary); font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+        /* ─── LINK SUCCESS POPUP ─── */
+        #linkPopup {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+            z-index: 200; opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none;
+        }
+        #linkPopup.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: all; }
+        .link-popup-inner {
+            background: var(--bg-surface); border: 1px solid rgba(6,182,212,0.4);
+            border-radius: var(--radius-lg); padding: 18px 20px;
+            display: flex; align-items: flex-start; gap: 14px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+            min-width: 380px; max-width: 560px;
+        }
+        .popup-check {
+            width: 36px; height: 36px; border-radius: var(--radius-sm);
+            background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.3);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--cyan); flex-shrink: 0;
+        }
+        .popup-content { flex: 1; min-width: 0; }
+        .popup-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--cyan); margin-bottom: 4px; }
+        .popup-link { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-primary); word-break: break-all; line-height: 1.5; }
+        .popup-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .popup-btn-copy {
+            padding: 5px 12px; background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.3);
+            border-radius: var(--radius-sm); color: var(--cyan);
+            font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 600;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .popup-btn-copy:hover { background: rgba(6,182,212,0.2); }
+        .popup-close-btn {
+            width: 28px; height: 28px; background: var(--bg-elevated); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--text-muted); flex-shrink: 0;
+            transition: all 0.15s; margin-top: 2px;
+        }
+        .popup-close-btn:hover { color: var(--text-primary); }
+
+        /* ─── TOAST ─── */
+        #toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 999;
+            display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+            background: var(--bg-elevated); border: 1px solid var(--border-light);
+            border-radius: var(--radius-md); font-size: 13px; font-weight: 500; color: var(--text-primary);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: translateY(80px); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none; max-width: 300px;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        #toast.success { border-left: 3px solid var(--green); }
+        #toast.error   { border-left: 3px solid var(--red); }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<aside>
+    <div class="sidebar-content">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+            <span class="brand-name">AntiFraud</span>
+        </div>
+
+        <div class="sidebar-profile">
+            <div class="profile-avatar" id="sidebar-avatar">--</div>
+            <div class="profile-info">
+                <div class="profile-name" id="sidebar-name">Yuklanmoqda...</div>
+                <div class="profile-phone" id="sidebar-phone">—</div>
+            </div>
+        </div>
+
+        <nav>
+            <span class="nav-label">Asosiy</span>
+            <a href="/form/admin/dashboard" class="nav-item">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/>
+                    <rect x="11" y="11" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="/form/admin/users" class="nav-item">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Foydalanuvchilar
+            </a>
+            <a href="/form/admin/links" class="nav-item active">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                Linklar
+            </a>
+            <div class="nav-divider"></div>
+            <span class="nav-label">Tizim</span>
+            <button onclick="logout()" class="nav-item danger">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Chiqish
+            </button>
+        </nav>
+    </div>
+</aside>
+
+<!-- ─── MAIN ─── -->
+<main>
+    <div class="page-content">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Havolalar</h1>
+                <p class="page-subtitle">// yaratilgan barcha havolalar va konversiya</p>
+            </div>
+            <div class="header-right">
+                <div class="tab-group">
+                    <button class="tab-btn active-tab" id="tab-all" onclick="filterByStatus('all')">
+                        <span class="tab-dot"></span> Barchasi
+                    </button>
+                    <button class="tab-btn" id="tab-active" onclick="filterByStatus('active')">
+                        <span class="tab-dot"></span> Aktiv
+                    </button>
+                    <button class="tab-btn expired-tab" id="tab-expired" onclick="filterByStatus('expired')">
+                        <span class="tab-dot"></span> Muddati o'tgan
+                    </button>
+                </div>
+                <button class="btn-primary" onclick="openCreateModal()">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/>
+                    </svg>
+                    Link yaratish
+                </button>
+            </div>
+        </div>
+
+        <!-- Links table section -->
+        <section>
+            <div class="section-label">
+                <div class="section-label-dot" style="background:var(--accent)"></div>
+                Admin Tomonidan Yaratilgan Linklar
+            </div>
+            <div class="table-wrapper">
+                <div class="table-header-bar">
+                    <div class="table-title">
+                        <span id="links-table-label">Barcha havolalar</span>
+                        <span class="table-count" id="links-count">0 ta</span>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Admin</th>
+                            <th>Havola</th>
+                            <th>Yaratilgan</th>
+                            <th>Amal qilish</th>
+                            <th>Holat</th>
+                        </tr>
+                        </thead>
+                        <tbody id="linksTable">
+                        <tr><td colspan="6"><div class="empty-state">// yuklanmoqda...</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Linked users sub-section -->
+        <section id="usersSection" class="hidden">
+            <div class="section-label" style="justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="section-label-dot" style="background:var(--green)"></div>
+                    Havolaga Bog'langan Foydalanuvchilar
+                </div>
+                <span class="selected-tag" id="selectedLinkTag">
+                    <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 6.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                        <path d="M9 9.5c0-2.2-1.8-4-4-4s-4 1.8-4 4"/>
+                    </svg>
+                    Link #—
+                </span>
+            </div>
+            <div class="table-wrapper" style="border-color:rgba(16,185,129,0.2);">
+                <div class="table-header-bar" style="border-color:rgba(16,185,129,0.15);">
+                    <div class="table-title" style="color:var(--green)">
+                        Foydalanuvchilar ro'yxati
+                        <span class="table-count" id="users-count" style="background:var(--green-dim);color:var(--green);border-color:rgba(16,185,129,0.2);">0 ta</span>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table style="min-width:750px;">
+                        <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Telefon</th>
+                            <th>Kod</th>
+                            <th>IP Manzil</th>
+                            <th>Device ID</th>
+                            <th style="text-align:center;">Fraud</th>
+                            <th>Bosilgan vaqt</th>
+                        </tr>
+                        </thead>
+                        <tbody id="linkedUsersTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<!-- ─── CREATE MODAL ─── -->
+<div class="modal-overlay" id="createModal">
+    <div class="modal-box">
+        <div class="modal-title">Yangi Havola Yaratish</div>
+        <div class="modal-subtitle">// amal qilish muddatini belgilang</div>
+        <div class="form-group">
+            <label class="form-label">Muddat (daqiqalarda)</label>
+            <input type="number" id="expireInput" class="form-input" value="60" min="1">
+            <div class="form-hint">// 60 = 1 soat · 1440 = 1 kun</div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-ghost" onclick="closeModal()">Bekor qilish</button>
+            <button type="button" class="btn-primary" style="flex:1;justify-content:center;" id="btnSubmit" onclick="submitCreateLink()">
+                Generatsiya qilish
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── LINK SUCCESS POPUP ─── -->
+<div id="linkPopup">
+    <div class="link-popup-inner">
+        <div class="popup-check">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12" transform="scale(0.75) translate(2,2)"/>
+            </svg>
+        </div>
+        <div class="popup-content">
+            <div class="popup-label">// Yangi havola yaratildi</div>
+            <div class="popup-link" id="newLinkUrl"></div>
+            <div class="popup-actions">
+                <button class="popup-btn-copy" id="copyBtn" onclick="copyLink()">Nusxalash</button>
+            </div>
+        </div>
+        <button class="popup-close-btn" onclick="closePopup()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    const API_LINK = '/api/link';
+    let allLinksData = [];
+    let currentFilter = 'all';
+    let currentLinkId = null;
+
+    // ── Auth ──
+    const getAuth = () => {
+        const enc = localStorage.getItem('admin_token');
+        if (!enc) return null;
+        try {
+            const token = atob(enc);
+            const p = JSON.parse(atob(token.split('.')[1]));
+            return { token, role: p.role, fullname: p.fullname, phone: p.phone, adminId: p.adminId };
+        } catch { return null; }
+    };
+
+    const auth = getAuth();
+    if (!auth) window.location.href = '/form/admin/login';
+
+    const authHeaders = () => ({ 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' });
+
+    // ── Toast ──
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="color:${type==='success'?'var(--green)':'var(--red)'}">
+            ${type === 'success' ? '<polyline points="20 6 9 17 4 12"/>' : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'}
+        </svg><span>${msg}</span>`;
+        t.className = `show ${type}`;
+        setTimeout(() => { t.className = ''; }, 3500);
+    }
+
+    // ── UI Init ──
+    function initUI() {
+        const initials = (auth.fullname || '--').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        document.getElementById('sidebar-avatar').textContent = initials;
+        document.getElementById('sidebar-name').textContent = auth.fullname || 'Admin';
+        document.getElementById('sidebar-phone').textContent = auth.phone || '';
+    }
+
+    // ── Load Links ──
+    async function loadAdminLinks() {
+        try {
+            const res = await fetch(`${API_LINK}/list/${auth.adminId}`, { headers: authHeaders() });
+            if (res.status === 401 || res.status === 403) return logout();
+            if (!res.ok) throw new Error(`Server xatosi: ${res.status}`);
+            allLinksData = await res.json();
+            filterByStatus(currentFilter);
+        } catch (err) {
+            document.getElementById('linksTable').innerHTML = `<tr><td colspan="6"><div class="empty-state">// yuklab bo'lmadi: ${err.message}</div></td></tr>`;
+        }
+    }
+
+    // ── Filter ──
+    function filterByStatus(status) {
+        currentFilter = status;
+        const tabs = ['all', 'active', 'expired'];
+        tabs.forEach(s => {
+            const btn = document.getElementById(`tab-${s}`);
+            const isActive = s === status;
+            btn.className = `tab-btn${s === 'expired' ? ' expired-tab' : ''}${isActive ? ' active-tab' : ''}`;
+        });
+
+        const labels = { all: 'Barcha havolalar', active: 'Aktiv havolalar', expired: "Muddati o'tgan" };
+        document.getElementById('links-table-label').textContent = labels[status];
+
+        let filtered = allLinksData;
+        if (status === 'active')  filtered = allLinksData.filter(l => !l.isExpired);
+        if (status === 'expired') filtered = allLinksData.filter(l => l.isExpired);
+        renderLinks(filtered);
+    }
+
+    function renderLinks(links) {
+        const tbody = document.getElementById('linksTable');
+        document.getElementById('links-count').textContent = `${links.length} ta`;
+
+        if (!links.length) {
+            tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">// havolalar topilmadi</div></td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = links.map(l => `
+            <tr onclick="fetchLinkedUsers(${l.id}, this)" ${currentLinkId === l.id ? 'class="row-active"' : ''}>
+                <td class="td-id">#${l.id}</td>
+                <td class="td-bold">${l.adminName || 'Admin'}</td>
+                <td class="td-link" title="${l.generatedLink}">${l.generatedLink}</td>
+                <td class="td-mono" style="color:var(--text-muted);font-size:10px;">${new Date(l.createdAt).toLocaleString('uz-UZ')}</td>
+                <td class="td-mono" style="color:var(--text-muted);font-size:10px;">${new Date(l.expiresAt).toLocaleString('uz-UZ')}</td>
+                <td>
+                    <span class="status-pill ${l.isExpired ? 'pill-expired' : 'pill-active'}">
+                        <span class="pill-dot"></span>
+                        ${l.isExpired ? "Expired" : "Active"}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // ── Fetch linked users ──
+    async function fetchLinkedUsers(linkId, el) {
+        currentLinkId = linkId;
+        document.querySelectorAll('#linksTable tr').forEach(r => r.classList.remove('row-active'));
+        el.classList.add('row-active');
+
+        const section = document.getElementById('usersSection');
+        const tbody = document.getElementById('linkedUsersTable');
+        section.classList.remove('hidden');
+        document.getElementById('selectedLinkTag').innerHTML = `
+            <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 6.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                <path d="M9 9.5c0-2.2-1.8-4-4-4s-4 1.8-4 4"/>
+            </svg>
+            Link #${linkId}`;
+        tbody.innerHTML = `<tr class="loading-row"><td colspan="7"><div style="display:flex;align-items:center;justify-content:center;gap:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:11px;"><div class="spin"></div>yuklanmoqda...</div></td></tr>`;
+
+        try {
+            const res = await fetch(`${API_LINK}/users/${linkId}`, { headers: authHeaders() });
+            if (!res.ok) throw new Error('Foydalanuvchilarni yuklashda xatolik');
+            const users = await res.json();
+            renderUsers(users);
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state" style="color:var(--red);">// ${err.message}</div></td></tr>`;
+        }
+    }
+
+    function renderUsers(users) {
+        const tbody = document.getElementById('linkedUsersTable');
+        document.getElementById('users-count').textContent = `${users.length} ta`;
+
+        if (!users || !users.length) {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">// hali ushbu havola orqali hech kim kirmagan</div></td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = users.map(u => `
+            <tr>
+                <td class="td-id" style="color:var(--cyan);">${u.userId}</td>
+                <td style="font-weight:700;color:var(--text-primary);font-size:13px;">${u.userPhone}</td>
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);">${u.userCode || '—'}</td>
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;">${u.userIp}</td>
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;">${u.userDeviceId || 'N/A'}</td>
+                <td style="text-align:center;">
+                    <span class="sub-badge ${u.isFraud ? 'badge-fraud' : 'badge-safe'}">
+                        ${u.isFraud ? '⚠ RISK' : '✓ SAFE'}
+                    </span>
+                </td>
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);">${new Date(u.clickedAt).toLocaleString('uz-UZ')}</td>
+            </tr>
+        `).join('');
+    }
+
+    // ── Create Link ──
+    function openCreateModal() { document.getElementById('createModal').classList.add('open'); }
+    function closeModal() { document.getElementById('createModal').classList.remove('open'); }
+
+    async function submitCreateLink() {
+        const btn = document.getElementById('btnSubmit');
+        const expireTime = document.getElementById('expireInput').value;
+        if (!expireTime) return;
+
+        btn.textContent = 'Yaratilmoqda...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`/api/admin/create-link/${auth.adminId}?expireTime=${expireTime}`, {
+                method: 'POST',
+                headers: authHeaders()
+            });
+            if (!res.ok) throw new Error('Yaratishda xatolik');
+            const obj = await res.json();
+            closeModal();
+            showNewLinkPopup(obj.generatedLink);
+            loadAdminLinks();
+        } catch (err) {
+            showToast('Havola yaratishda xatolik', 'error');
+        } finally {
+            btn.textContent = 'Generatsiya qilish';
+            btn.disabled = false;
+        }
+    }
+
+    // ── Success Popup ──
+    let currentLink = '';
+    function showNewLinkPopup(link) {
+        currentLink = link;
+        document.getElementById('newLinkUrl').textContent = link;
+        document.getElementById('copyBtn').textContent = 'Nusxalash';
+        document.getElementById('linkPopup').classList.add('show');
+        setTimeout(closePopup, 20000);
+    }
+
+    function copyLink() {
+        navigator.clipboard.writeText(currentLink).then(() => {
+            document.getElementById('copyBtn').textContent = '✓ Nusxalandi';
+            setTimeout(() => { document.getElementById('copyBtn').textContent = 'Nusxalash'; }, 2000);
+        });
+    }
+
+    function closePopup() { document.getElementById('linkPopup').classList.remove('show'); }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+        o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+    });
+
+    function logout() {
+        localStorage.removeItem('admin_token');
+        window.location.href = '/form/admin/login';
+    }
+
+    window.addEventListener('load', () => { initUI(); loadAdminLinks(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AntiFraud · Admin Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-base:      #0a0d14;
+            --bg-surface:   #111622;
+            --bg-elevated:  #171e2e;
+            --bg-hover:     #1c2538;
+            --border:       #1f2d45;
+            --border-light: #263347;
+            --text-primary: #e8edf7;
+            --text-secondary:#7a8aaa;
+            --text-muted:   #4a5670;
+            --accent:       #3b82f6;
+            --accent-dim:   rgba(59,130,246,0.12);
+            --accent-glow:  rgba(59,130,246,0.25);
+            --cyan:         #06b6d4;
+            --cyan-dim:     rgba(6,182,212,0.10);
+            --green:        #10b981;
+            --green-dim:    rgba(16,185,129,0.10);
+            --red:          #f43f5e;
+            --red-dim:      rgba(244,63,94,0.10);
+            --amber:        #f59e0b;
+            --purple:       #a855f7;
+            --purple-dim:   rgba(168,85,247,0.10);
+            --sidebar-w:    260px;
+            --radius-sm:    6px;
+            --radius-md:    10px;
+            --radius-lg:    14px;
+            --radius-xl:    20px;
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 99px; }
+
+        /* ─── SIDEBAR ─── */
+        aside {
+            width: var(--sidebar-w);
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 50;
+            overflow: hidden;
+        }
+
+        /* Noise texture overlay */
+        aside::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .sidebar-content { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
+
+        /* Profile card in sidebar */
+        .sidebar-profile {
+            padding: 20px 16px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            font-size: 15px;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 1px rgba(59,130,246,0.3), 0 4px 16px rgba(59,130,246,0.2);
+            letter-spacing: -0.5px;
+        }
+
+        .profile-info { min-width: 0; }
+        .profile-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+        .profile-phone {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Shield logo line */
+        .sidebar-brand {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-dim);
+            border: 1px solid rgba(59,130,246,0.25);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+        }
+        .brand-name {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Nav */
+        nav { flex: 1; padding: 14px 12px; display: flex; flex-direction: column; gap: 2px; }
+
+        .nav-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 6px 12px 4px;
+            margin-top: 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 9px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.15s ease;
+            position: relative;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .nav-item.active {
+            background: var(--accent-dim);
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: var(--accent);
+            border-radius: 0 3px 3px 0;
+        }
+        .nav-item.danger { color: var(--red); }
+        .nav-item.danger:hover { background: var(--red-dim); }
+
+        .nav-divider { height: 1px; background: var(--border); margin: 10px 12px; }
+
+        /* ─── MAIN ─── */
+        main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            padding: 32px 36px;
+            min-height: 100vh;
+            background: var(--bg-base);
+        }
+
+        /* Grid background */
+        main::before {
+            content: '';
+            position: fixed;
+            top: 0; left: var(--sidebar-w); right: 0; bottom: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.18;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page-content { position: relative; z-index: 1; }
+
+        /* ─── HEADER ─── */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+        .page-subtitle {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ─── BUTTON ─── */
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: 'Sora', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+            box-shadow: 0 0 30px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+
+        /* ─── STAT CARDS ─── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 22px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .stat-card:hover { border-color: var(--border-light); }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .stat-card:hover::after { opacity: 1; }
+
+        .stat-card.accent-cyan::after { background: var(--cyan); }
+        .stat-card.accent-purple::after { background: var(--purple); }
+
+        .stat-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-top: 10px;
+            letter-spacing: -1px;
+        }
+        .stat-card.accent-cyan .stat-value { color: var(--cyan); }
+        .stat-card.accent-purple .stat-value { color: var(--purple); font-size: 18px; letter-spacing: 1px; font-family: 'IBM Plex Mono', monospace; }
+
+        /* ─── TABLE ─── */
+        .table-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+        }
+        .table-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .table-count {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(59,130,246,0.2);
+            padding: 2px 8px;
+            border-radius: 99px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        thead tr {
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            padding: 11px 20px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: left;
+        }
+        th:last-child { text-align: right; }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--bg-hover); }
+
+        td {
+            padding: 14px 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            vertical-align: middle;
+        }
+
+        .td-id {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .td-name { font-weight: 700; color: var(--text-primary); }
+        .td-phone {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .td-date {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Role badge */
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .role-super {
+            background: var(--purple-dim);
+            color: var(--purple);
+            border: 1px solid rgba(168,85,247,0.2);
+        }
+        .role-admin {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(59,130,246,0.2);
+        }
+
+        /* Status badge */
+        .status-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+        }
+        .status-active {
+            background: var(--green-dim);
+            color: var(--green);
+            border: 1px solid rgba(16,185,129,0.2);
+        }
+        .status-active:hover {
+            background: var(--red-dim);
+            color: var(--red);
+            border-color: rgba(244,63,94,0.2);
+        }
+        .status-inactive {
+            background: rgba(100,116,139,0.1);
+            color: #64748b;
+            border: 1px solid rgba(100,116,139,0.2);
+        }
+        .status-inactive:hover {
+            background: var(--green-dim);
+            color: var(--green);
+            border-color: rgba(16,185,129,0.2);
+        }
+
+        /* Row actions */
+        .row-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+
+        .icon-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: transparent;
+            color: var(--text-muted);
+        }
+        .icon-btn:hover { border-color: var(--border-light); color: var(--text-primary); background: var(--bg-hover); }
+        .icon-btn.delete:hover { color: var(--red); background: var(--red-dim); border-color: rgba(244,63,94,0.2); }
+        .icon-btn.link-btn:hover { color: var(--cyan); background: var(--cyan-dim); border-color: rgba(6,182,212,0.2); }
+
+        /* ─── MODAL ─── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 420px;
+            padding: 28px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+            animation: slideUp 0.2s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .modal-subtitle {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group { margin-bottom: 14px; }
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 13px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: 'Sora', sans-serif;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+        .form-select option { background: var(--bg-elevated); }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .btn-ghost {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-family: 'Sora', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+        /* Confirm modal */
+        .confirm-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            background: var(--red-dim);
+            border: 1px solid rgba(244,63,94,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--red);
+            margin-bottom: 16px;
+        }
+
+        .btn-danger {
+            flex: 1;
+            padding: 10px;
+            background: var(--red);
+            border: none;
+            border-radius: var(--radius-md);
+            color: #fff;
+            font-family: 'Sora', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-danger:hover { background: #e11d48; }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none;
+            max-width: 320px;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        #toast.success { border-left: 3px solid var(--green); }
+        #toast.error   { border-left: 3px solid var(--red); }
+
+        /* Empty state */
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+        }
+
+        /* Loading row */
+        .skeleton-row td { opacity: 0.3; }
+        .skeleton { background: var(--bg-elevated); border-radius: 4px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<aside>
+    <div class="sidebar-content">
+        <!-- Brand -->
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+            <span class="brand-name">AntiFraud</span>
+        </div>
+
+        <!-- Profile -->
+        <div class="sidebar-profile">
+            <div class="profile-avatar" id="sidebar-avatar">--</div>
+            <div class="profile-info">
+                <div class="profile-name" id="sidebar-name">Yuklanmoqda...</div>
+                <div class="profile-phone" id="sidebar-phone">—</div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav>
+            <span class="nav-label">Asosiy</span>
+            <a href="#" class="nav-item active">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/>
+                    <rect x="11" y="11" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="/form/admin/users" class="nav-item">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Foydalanuvchilar
+            </a>
+            <a href="/form/admin/links" class="nav-item">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                Linklar
+            </a>
+
+            <div class="nav-divider"></div>
+            <span class="nav-label">Tizim</span>
+
+            <button onclick="logout()" class="nav-item danger">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Chiqish
+            </button>
+        </nav>
+    </div>
+</aside>
+
+<!-- ─── MAIN ─── -->
+<main>
+    <div class="page-content">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Adminlar Boshqaruvi</h1>
+                <p class="page-subtitle" id="page-subtitle">// tizim admins ro'yxati</p>
+            </div>
+            <button id="btn-create-admin" class="btn-primary hidden" onclick="openCreateModal()">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="3">
+                    <line x1="7.5" y1="1.5" x2="7.5" y2="13.5"/>
+                    <line x1="1.5" y1="7.5" x2="13.5" y2="7.5"/>
+                </svg>
+                Yangi Admin
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Jami Adminlar</div>
+                <div class="stat-value" id="stat-total">—</div>
+            </div>
+            <div class="stat-card accent-cyan">
+                <div class="stat-label">Faol Havolalar</div>
+                <div class="stat-value" id="stat-links">—</div>
+            </div>
+            <div class="stat-card accent-purple">
+                <div class="stat-label">Sizning Rolingiz</div>
+                <div class="stat-value" id="stat-role">—</div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+            <div class="table-header">
+                <div class="table-title">
+                    Admin Ro'yxati
+                    <span class="table-count" id="tbl-count">0 ta</span>
+                </div>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>To'liq Ism</th>
+                    <th>Telefon</th>
+                    <th>Rol</th>
+                    <th>Holat</th>
+                    <th>Sana</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="adminTableBody">
+                <tr>
+                    <td colspan="7"><div class="empty-state">// yuklanmoqda...</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</main>
+
+<!-- ─── CREATE MODAL ─── -->
+<div class="modal-overlay" id="createModal">
+    <div class="modal-box">
+        <div class="modal-title">Yangi Admin Qo'shish</div>
+        <div class="modal-subtitle">// barcha maydonlarni to'ldiring</div>
+        <form id="createAdminForm">
+            <div class="form-group">
+                <label class="form-label">To'liq ism</label>
+                <input type="text" id="f-fullname" required class="form-input" placeholder="Abdullayev Jasur">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Telefon (Username)</label>
+                <input type="text" id="f-phone" required class="form-input" placeholder="+998901234567">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Parol</label>
+                <input type="password" id="f-password" required class="form-input" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Rol</label>
+                <select id="f-role" class="form-select">
+                    <option value="admin">admin</option>
+                    <option value="super_admin">super_admin</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-ghost" onclick="closeCreateModal()">Bekor qilish</button>
+                <button type="submit" class="btn-primary" style="flex:1;justify-content:center;">Saqlash</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ─── DELETE CONFIRM MODAL ─── -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <div class="confirm-icon">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M9 6V4h6v2"/>
+            </svg>
+        </div>
+        <div class="modal-title">Adminni o'chirish</div>
+        <div class="modal-subtitle">// bu amalni qaytarib bo'lmaydi</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">
+            <strong id="delete-name" style="color:var(--text-primary)"></strong> adminni o'chirmoqchimisiz?
+        </p>
+        <div class="modal-footer">
+            <button type="button" class="btn-ghost" onclick="closeDeleteModal()">Bekor qilish</button>
+            <button type="button" class="btn-danger" onclick="confirmDelete()">O'chirish</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── LINK MODAL ─── -->
+<div class="modal-overlay" id="linkModal">
+    <div class="modal-box">
+        <div class="modal-title">Havola Yaratish</div>
+        <div class="modal-subtitle">// <span id="link-admin-name"></span> uchun</div>
+        <div class="form-group">
+            <label class="form-label">Faollik muddati (daqiqa)</label>
+            <input type="number" id="link-time" class="form-input" value="60" min="1">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-ghost" onclick="closeLinkModal()">Bekor qilish</button>
+            <button type="button" class="btn-primary" style="flex:1;justify-content:center;" onclick="confirmCreateLink()">Yaratish</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── TOAST ─── -->
+<div id="toast"></div>
+
+<script>
+    const API = '/api/admin';
+
+    // ── Auth ──
+    const getAuth = () => {
+        const enc = localStorage.getItem('admin_token');
+        if (!enc) return null;
+        try {
+            const token = atob(enc);
+            const p = JSON.parse(atob(token.split('.')[1]));
+            return { token, role: p.role, fullname: p.fullname, phone: p.phone, adminId: p.adminId };
+        } catch { return null; }
+    };
+
+    const auth = getAuth();
+    if (!auth) window.location.href = '/form/admin/login';
+
+    const isSuperAdmin = auth?.role === 'super_admin';
+
+    const headers = () => ({
+        'Authorization': `Bearer ${auth.token}`,
+        'Content-Type': 'application/json'
+    });
+
+    // ── Toast ──
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.innerHTML = `
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="color:${type==='success'?'var(--green)':'var(--red)'}">
+                ${type === 'success'
+                    ? '<polyline points="20 6 9 17 4 12"/>'
+                    : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'}
+            </svg>
+            <span>${msg}</span>`;
+        t.className = `show ${type}`;
+        setTimeout(() => { t.className = ''; }, 3500);
+    }
+
+    // ── UI Init ──
+    function initUI() {
+        const initials = (auth.fullname || '--').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        document.getElementById('sidebar-avatar').textContent = initials;
+        document.getElementById('sidebar-name').textContent = auth.fullname || 'Admin';
+        document.getElementById('sidebar-phone').textContent = auth.phone || '';
+        document.getElementById('stat-role').textContent = auth.role?.replace('_', ' ');
+
+        if (isSuperAdmin) {
+            document.getElementById('btn-create-admin').classList.remove('hidden');
+        }
+    }
+
+    // ── Load Data ──
+    async function loadAdmins() {
+        try {
+            const res = await fetch(`${API}/list`, { headers: headers() });
+            if (res.status === 401 || res.status === 403) return logout();
+            const data = await res.json();
+            renderAdmins(data);
+            document.getElementById('stat-total').textContent = data.length;
+            document.getElementById('tbl-count').textContent = `${data.length} ta`;
+        } catch (e) {
+            showToast('Ma\'lumot yuklanmadi', 'error');
+        }
+    }
+
+    async function loadLinks() {
+        try {
+            const res = await fetch(`${API}/active-links-num`, { headers: headers() });
+            if (res.ok) document.getElementById('stat-links').textContent = await res.text();
+        } catch {}
+    }
+
+    // ── Render ──
+    function renderAdmins(list) {
+        const tbody = document.getElementById('adminTableBody');
+        if (!list.length) {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">// adminlar topilmadi</div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = list.map(a => {
+            const isActive = a.isActive !== false; // default true if field missing
+            const statusClass = isActive ? 'status-active' : 'status-inactive';
+            const statusLabel = isActive ? '● FAOL' : '○ NOFAOL';
+            const nextState = !isActive;
+
+            return `
+            <tr>
+                <td class="td-id">#${a.id}</td>
+                <td class="td-name">${a.fullname}</td>
+                <td class="td-phone">${a.username}</td>
+                <td>
+                    <span class="role-badge ${a.role === 'super_admin' ? 'role-super' : 'role-admin'}">
+                        ${a.role === 'super_admin' ? '◆' : '◇'} ${a.role}
+                    </span>
+                </td>
+                <td>
+                    ${isSuperAdmin ? `
+                    <button class="status-btn ${statusClass}"
+                        onclick="toggleStatus(${a.id}, ${nextState}, this)"
+                        title="${isActive ? 'Bloklash' : 'Faollashtirish'}">
+                        ${statusLabel}
+                    </button>` : `<span class="status-btn ${statusClass}" style="cursor:default">${statusLabel}</span>`}
+                </td>
+                <td class="td-date">${new Date(a.createdAt).toLocaleDateString('uz-UZ')}</td>
+                <td>
+                    <div class="row-actions">
+                        ${isSuperAdmin ? `
+                        <button class="icon-btn delete" onclick="openDeleteModal(${a.id}, '${a.fullname}')" title="O'chirish">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6" transform="scale(0.6) translate(1,1)"/>
+                                <path d="M19 6l-1 14H6L5 6" transform="scale(0.6) translate(1,1)"/>
+                                <path d="M9 6V4h6v2" transform="scale(0.6) translate(1,1)"/>
+                            </svg>
+                        </button>` : ''}
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── Toggle Status ──
+    async function toggleStatus(adminId, makeActive, btn) {
+        try {
+            const res = await fetch(`${API}/edit-status/${adminId}?makeActive=${makeActive}`, {
+                method: 'PUT',
+                headers: headers()
+            });
+            if (res.ok) {
+                showToast(makeActive ? 'Admin faollashtirildi' : 'Admin bloklandi');
+                loadAdmins();
+            } else {
+                showToast('Xatolik yuz berdi', 'error');
+            }
+        } catch {
+            showToast('Server bilan bog\'lanib bo\'lmadi', 'error');
+        }
+    }
+
+    // ── Delete ──
+    let _deleteId = null;
+    function openDeleteModal(id, name) {
+        _deleteId = id;
+        document.getElementById('delete-name').textContent = name;
+        document.getElementById('deleteModal').classList.add('open');
+    }
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('open');
+        _deleteId = null;
+    }
+    async function confirmDelete() {
+        if (!_deleteId) return;
+        try {
+            const res = await fetch(`${API}/delete/${_deleteId}`, {
+                method: 'DELETE',
+                headers: headers()
+            });
+            if (res.ok) {
+                showToast('Admin muvaffaqiyatli o\'chirildi');
+                closeDeleteModal();
+                loadAdmins();
+            } else {
+                showToast('O\'chirishda xatolik', 'error');
+            }
+        } catch {
+            showToast('Server bilan bog\'lanib bo\'lmadi', 'error');
+        }
+    }
+
+    // ── Create Admin ──
+    function openCreateModal() { document.getElementById('createModal').classList.add('open'); }
+    function closeCreateModal() { document.getElementById('createModal').classList.remove('open'); }
+
+    document.getElementById('createAdminForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const payload = {
+            fullname: document.getElementById('f-fullname').value,
+            phone:    document.getElementById('f-phone').value,
+            password: document.getElementById('f-password').value,
+            role:     document.getElementById('f-role').value
+        };
+        try {
+            const res = await fetch(`${API}/create`, {
+                method: 'POST',
+                headers: headers(),
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                showToast('Admin muvaffaqiyatli qo\'shildi');
+                closeCreateModal();
+                e.target.reset();
+                loadAdmins();
+            } else {
+                showToast('Xatolik yuz berdi', 'error');
+            }
+        } catch {
+            showToast('Server bilan bog\'lanib bo\'lmadi', 'error');
+        }
+    };
+
+    // ── Create Link ──
+    let _linkAdminId = null;
+    function openLinkModal(id, name) {
+        _linkAdminId = id;
+        document.getElementById('link-admin-name').textContent = name;
+        document.getElementById('linkModal').classList.add('open');
+    }
+    function closeLinkModal() {
+        document.getElementById('linkModal').classList.remove('open');
+        _linkAdminId = null;
+    }
+    async function confirmCreateLink() {
+        const time = document.getElementById('link-time').value;
+        if (!time || !_linkAdminId) return;
+        try {
+            const res = await fetch(`${API}/create-link/${_linkAdminId}?expireTime=${time}`, {
+                method: 'POST',
+                headers: headers()
+            });
+            if (res.ok) {
+                const link = await res.json();
+                closeLinkModal();
+                // Show link in a nicer way
+                const box = document.createElement('div');
+                box.style.cssText = `
+                    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+                    background:var(--bg-elevated);border:1px solid var(--cyan);
+                    border-radius:var(--radius-md);padding:14px 18px;z-index:999;
+                    font-family:'IBM Plex Mono',monospace;font-size:12px;
+                    color:var(--cyan);max-width:90vw;word-break:break-all;
+                    box-shadow:0 8px 32px rgba(0,0,0,0.4);
+                `;
+                box.innerHTML = `<div style="color:var(--text-muted);font-size:9px;margin-bottom:6px;letter-spacing:1px;">// YANGI HAVOLA</div>${link.generatedLink}
+                    <button onclick="navigator.clipboard.writeText('${link.generatedLink}');this.textContent='Nusxalandi ✓'"
+                    style="display:block;margin-top:10px;padding:6px 12px;background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.3);
+                    border-radius:6px;color:var(--cyan);font-family:Sora,sans-serif;font-size:11px;cursor:pointer;font-weight:600;">
+                    Nusxalash</button>`;
+                document.body.appendChild(box);
+                setTimeout(() => box.remove(), 15000);
+                loadLinks();
+            } else {
+                showToast('Havola yaratishda xatolik', 'error');
+            }
+        } catch {
+            showToast('Server bilan bog\'lanib bo\'lmadi', 'error');
+        }
+    }
+
+    // ── Logout ──
+    function logout() {
+        localStorage.removeItem('admin_token');
+        window.location.href = '/form/admin/login';
+    }
+
+    // ── Close modals on overlay click ──
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) overlay.classList.remove('open');
+        });
+    });
+
+    // ── Boot ──
+    window.addEventListener('load', () => {
+        initUI();
+        loadAdmins();
+        loadLinks();
+    });
+</script>
+</body>
+</html>
